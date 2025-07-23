@@ -8,71 +8,79 @@ export default function WaveformPlayer({ audioUrl }) {
   const waveRef = useRef(null);
 
   useEffect(() => {
-    if (!audioUrl || !containerRef.current) return;
+    if (!audioUrl || !containerRef.current) {
+      console.warn("No audioUrl or containerRef");
+      return;
+    }
 
-    const container = containerRef.current;
-
-    // Destroy existing waveform safely
-    const destroyWave = async () => {
-      try {
-        if (waveRef.current) {
-          await waveRef.current.destroy();
-          waveRef.current = null;
-        }
-      } catch (err) {
-        if (err.name !== "AbortError") {
-          console.error("Error destroying WaveSurfer:", err);
-        }
-      }
-    };
-
-    // Immediately destroy before creating new
-    destroyWave();
+    if (waveRef.current) {
+      waveRef.current.destroy();
+      waveRef.current = null;
+    }
 
     const wave = WaveSurfer.create({
-      container,
-      waveColor: "#FFD70088",
-      progressColor: "#FFD700",
+      container: containerRef.current,
+      waveColor: "rgba(255, 215, 0, 0.4)",   // lighter gold with transparency
+      progressColor: "#FFD700",               // full gold for progress
       height: 60,
       barWidth: 2,
       responsive: true,
       cursorWidth: 1,
       interact: true,
+      // backgroundColor: "transparent",     // no background option in WaveSurfer, so do it with CSS below
     });
 
     waveRef.current = wave;
+
+    wave.on("ready", () => {
+      console.log("WaveSurfer ready!");
+    });
+
+    wave.on("error", (e) => {
+      console.error("WaveSurfer error:", e);
+    });
 
     wave.on("play", () => {
       if (currentActiveWave && currentActiveWave !== wave) {
         currentActiveWave.pause();
       }
       currentActiveWave = wave;
+      console.log("Playing audio");
     });
 
-    // Load audio and catch any issues
-    wave.load(audioUrl).catch((err) => {
-      if (err.name !== "AbortError") {
-        console.error("WaveSurfer load error:", err);
-      }
-    });
+    wave.load(audioUrl);
 
     return () => {
-      // On unmount or re-render, clean up
-      destroyWave();
-
-      if (currentActiveWave === wave) {
+      if (waveRef.current) {
+        waveRef.current.destroy();
+        waveRef.current = null;
+      }
+      if (currentActiveWave === waveRef.current) {
         currentActiveWave = null;
       }
     };
   }, [audioUrl]);
 
   const togglePlay = () => {
-    waveRef.current?.playPause();
+    if (waveRef.current) {
+      waveRef.current.playPause();
+    } else {
+      console.warn("WaveSurfer instance not ready");
+    }
   };
 
   return (
     <div>
-      <div ref={containerRef} className="mb-2" />
+      <div
+        ref={containerRef}
+        className="waveform-container mb-2"
+        style={{
+          width: "100%",
+          height: 60,
+          backgroundColor: "transparent",  // Make sure background is transparent or your preferred color
+          userSelect: "none",
+        }}
+      />
       <button
         onClick={togglePlay}
         className="bg-adinkra-highlight text-adinkra-bg font-semibold py-1 px-3 rounded text-sm hover:bg-yellow-500 transition"
