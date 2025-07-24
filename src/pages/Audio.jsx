@@ -155,7 +155,7 @@ export default function Audio() {
       {/* FAQ */}
       <AccordionFaq title="Adinkra Audio Licensing FAQ" faqs={licensingFaqs} />
 
-      <Footer />
+      
     </div>
   );
 }

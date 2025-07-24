@@ -18,6 +18,7 @@ import AdinkraTV from "./pages/AdinkraTV";
 import TVVideoPage from "./pages/TVVideoPage";
 import PremiumTV from "./pages/PremiumTV";
 import PremiumVideo from "./pages/PremiumVideo";
+import Contact from "./pages/Contact"
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/submit-article" element={<SubmitArticle />} />
+          <Route path="/contact" element={<Contact />} />
 
           {/* Adinkra TV Routes */}
           <Route path="/adinkra-tv" element={<AdinkraTV />} />

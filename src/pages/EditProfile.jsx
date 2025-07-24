@@ -241,7 +241,7 @@ export default function EditProfile() {
           </button>
         </div>
       </main>
-      <Footer />
+      
     </div>
   );
 }

@@ -322,7 +322,7 @@ export default function SubmitArticle() {
           </button>
         </form>
       </main>
-      <Footer />
+      
     </div>
   );
 }

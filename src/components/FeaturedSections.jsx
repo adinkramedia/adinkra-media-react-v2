@@ -4,6 +4,20 @@ import { Link } from "react-router-dom";
 const SPACE_ID = "8e41pkw4is56";
 const ACCESS_TOKEN = "qM0FzdQIPkX6VF4rt8wXzzLiPdgbjmmNGzHarCK0l8I";
 
+// Rich text to plain text converter for Contentful
+const plainTextFromRichText = (richText) => {
+  if (!richText || !richText.content) return "";
+  return richText.content
+    .map((node) => {
+      if (node.nodeType === "paragraph") {
+        return node.content.map((child) => child.value || "").join("");
+      }
+      return "";
+    })
+    .join("\n")
+    .trim();
+};
+
 const endpoints = [
   {
     id: "africanTrendingNews",
@@ -32,6 +46,15 @@ const endpoints = [
     imageField: "coverImage",
     dateField: null,
   },
+  {
+    id: "tvVideo", // This matches the actual Contentful content type ID
+    title: "Adinkra TV",
+    path: "/tv",
+    titleField: "title",
+    summaryField: "description", // Rich text
+    imageField: "thumbnail",
+    dateField: "createdDate",
+  },
 ];
 
 export default function FeaturedSections() {
@@ -52,16 +75,22 @@ export default function FeaturedSections() {
             if (!item) return null;
 
             const assets = new Map(
-              data.includes?.Asset?.map((a) => [a.sys.id, a]) || []
+              (data.includes?.Asset || []).map((a) => [a.sys.id, a])
             );
             const imageId = item.fields?.[imageField]?.sys?.id;
             const image = assets.get(imageId)?.fields?.file?.url;
+
+            const summaryRaw = item.fields?.[summaryField];
+            const summary =
+              typeof summaryRaw === "object"
+                ? plainTextFromRichText(summaryRaw)
+                : summaryRaw || "";
 
             return {
               id,
               path,
               title: item.fields?.[titleField] || title,
-              summary: item.fields?.[summaryField] || "",
+              summary,
               image: image ? `https:${image}` : null,
             };
           } catch (err) {
@@ -123,7 +152,7 @@ export default function FeaturedSections() {
                         {section.title}
                       </h3>
                       <p className="text-sm text-adinkra-gold/80 leading-snug line-clamp-3">
-                        {section.summary || "Explore the latest news from Adinkra."}
+                        {section.summary || "Explore the latest from Adinkra."}
                       </p>
                     </div>
                     <Link
@@ -135,18 +164,6 @@ export default function FeaturedSections() {
                   </div>
                 </div>
               ))}
-
-          {/* Adinkra TV Placeholder */}
-          <div className="bg-adinkra-card rounded-xl overflow-hidden shadow-lg p-6 flex flex-col items-center justify-center text-center">
-            <div className="text-5xl mb-4 text-adinkra-highlight">📺</div>
-            <h3 className="text-lg font-semibold text-adinkra-gold mb-2">Adinkra TV</h3>
-            <p className="text-sm text-adinkra-gold/80 mb-4">
-              Coming soon: Watch documentaries, interviews & exclusive Adinkra originals.
-            </p>
-            <button className="text-sm bg-adinkra-highlight text-adinkra-bg font-semibold py-1.5 px-4 rounded hover:bg-yellow-500 transition-all">
-              Stay Tuned
-            </button>
-          </div>
         </div>
       </div>
     </section>

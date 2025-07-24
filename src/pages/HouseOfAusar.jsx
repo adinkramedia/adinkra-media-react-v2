@@ -127,7 +127,7 @@ export default function HouseOfAusar() {
   </div>
 </section>
 
-      <Footer />
+      
     </div>
   );
 }

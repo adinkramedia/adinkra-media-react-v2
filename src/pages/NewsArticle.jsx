@@ -159,7 +159,7 @@ export default function NewsArticle() {
           </div>
         )}
       </section>
-      <Footer />
+      
     </div>
   );
 }

@@ -112,7 +112,7 @@ export default function TVVideoPage() {
         </div>
       </main>
 
-      <Footer />
+      
     </div>
   );
 }

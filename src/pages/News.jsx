@@ -145,7 +145,7 @@ export default function News() {
         </div>
       </section>
 
-      <Footer />
+      
     </div>
   );
 }

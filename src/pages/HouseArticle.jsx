@@ -78,7 +78,7 @@ export default function HouseArticle() {
           {bodyContent && documentToReactComponents(bodyContent, options)}
         </div>
       </section>
-      <Footer />
+    
     </div>
   );
 }

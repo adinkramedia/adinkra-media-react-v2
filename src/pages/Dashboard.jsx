@@ -220,7 +220,7 @@ export default function Dashboard() {
         )}
       </section>
 
-      <Footer />
+      
     </div>
   );
 }

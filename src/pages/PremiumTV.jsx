@@ -87,7 +87,7 @@ export default function PremiumTV() {
         )}
       </main>
 
-      <Footer />
+      
     </div>
   );
 }

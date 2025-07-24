@@ -88,7 +88,7 @@ export default function PremiumVideo() {
         </div>
       </main>
 
-      <Footer />
+      
     </div>
   );
 }

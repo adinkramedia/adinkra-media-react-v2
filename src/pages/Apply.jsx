@@ -112,7 +112,7 @@ export default function Apply() {
         </form>
       </section>
 
-      <Footer />
+      
     </div>
   );
 }

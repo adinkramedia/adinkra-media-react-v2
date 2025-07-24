@@ -130,7 +130,7 @@ export default function SacredArticle() {
           </div>
         )}
       </section>
-      <Footer />
+      
     </div>
   );
 }
