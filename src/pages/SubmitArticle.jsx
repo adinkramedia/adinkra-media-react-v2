@@ -10,9 +10,13 @@ const SPACE_ID = import.meta.env.VITE_CONTENTFUL_SPACE_ID;
 const ENVIRONMENT = import.meta.env.VITE_CONTENTFUL_ENVIRONMENT || "master";
 const MANAGEMENT_TOKEN = import.meta.env.VITE_CONTENTFUL_MANAGEMENT_TOKEN;
 
-const client = createClient({
-  accessToken: MANAGEMENT_TOKEN,
-});
+let client = null;
+
+if (MANAGEMENT_TOKEN) {
+  client = createClient({ accessToken: MANAGEMENT_TOKEN });
+} else {
+  console.warn("❌ VITE_CONTENTFUL_MANAGEMENT_TOKEN is missing.");
+}
 
 export default function SubmitArticle() {
   const { isAuthenticated, user, isLoading } = useAuth0();

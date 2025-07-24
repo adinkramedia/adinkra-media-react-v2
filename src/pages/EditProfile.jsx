@@ -9,9 +9,13 @@ const SPACE_ID = import.meta.env.VITE_CONTENTFUL_SPACE_ID;
 const ENVIRONMENT = import.meta.env.VITE_CONTENTFUL_ENVIRONMENT || "master";
 const MANAGEMENT_TOKEN = import.meta.env.VITE_CONTENTFUL_MANAGEMENT_TOKEN;
 
-const client = createClient({
-  accessToken: MANAGEMENT_TOKEN,
-});
+let client = null;
+
+if (MANAGEMENT_TOKEN) {
+  client = createClient({ accessToken: MANAGEMENT_TOKEN });
+} else {
+  console.warn("❌ VITE_CONTENTFUL_MANAGEMENT_TOKEN is missing.");
+}
 
 export default function EditProfile() {
   const { isAuthenticated, user, isLoading } = useAuth0();
@@ -35,7 +39,7 @@ export default function EditProfile() {
   }, [isLoading, isAuthenticated, navigate]);
 
   useEffect(() => {
-    if (!user?.email) return;
+    if (!user?.email || !client) return;
 
     const fetchContributor = async () => {
       try {
@@ -64,7 +68,7 @@ export default function EditProfile() {
           }));
         }
       } catch (err) {
-        console.error("Error loading contributor:", err);
+        console.error("❌ Error loading contributor:", err);
       }
     };
 
@@ -73,19 +77,16 @@ export default function EditProfile() {
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "photoFile") {
-      setForm((prev) => ({ ...prev, photoFile: files[0] }));
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
-    }
+    setForm((prev) => ({
+      ...prev,
+      [name]: name === "photoFile" ? files[0] : value,
+    }));
   };
 
   const uploadPhotoAsset = async (environment, file) => {
     const asset = await environment.createAssetFromFiles({
       fields: {
-        title: {
-          "en-US": `${form.name}'s Profile Photo`,
-        },
+        title: { "en-US": `${form.name}'s Profile Photo` },
         file: {
           "en-US": {
             contentType: file.type,
@@ -97,14 +98,16 @@ export default function EditProfile() {
     });
 
     const processed = await asset.processForAllLocales();
-    const published = await processed.publish();
-    return published;
+    return await processed.publish();
   };
 
   const handleSave = async () => {
-    if (!contributor) return;
-    setSaving(true);
+    if (!contributor || !client) {
+      alert("Contributor profile not loaded or Contentful token missing.");
+      return;
+    }
 
+    setSaving(true);
     try {
       const space = await client.getSpace(SPACE_ID);
       const environment = await space.getEnvironment(ENVIRONMENT);
@@ -135,7 +138,6 @@ export default function EditProfile() {
       contributor.fields.linkedin = { "en-US": form.linkedin };
       contributor.fields.website = { "en-US": form.portfolio };
 
-      // Upload and link profile photo if provided
       if (form.photoFile) {
         const uploadedAsset = await uploadPhotoAsset(environment, form.photoFile);
         contributor.fields.photo = {
@@ -155,8 +157,8 @@ export default function EditProfile() {
       alert("Profile updated!");
       navigate("/dashboard");
     } catch (err) {
-      console.error("Update failed", err);
-      alert("Failed to update profile. See console for details.");
+      console.error("❌ Failed to update contributor:", err);
+      alert("Failed to save profile. Check console for details.");
     } finally {
       setSaving(false);
     }
@@ -168,80 +170,29 @@ export default function EditProfile() {
       <main className="max-w-3xl mx-auto px-6 py-16 space-y-6">
         <h1 className="text-3xl font-bold text-adinkra-highlight">Edit Profile</h1>
 
-        <div className="space-y-4">
-          <input
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            placeholder="Name"
-            autoComplete="name"
-            className="w-full p-3 rounded bg-adinkra-card text-adinkra-gold"
-          />
-          <textarea
-            name="bio"
-            value={form.bio}
-            onChange={handleChange}
-            placeholder="Bio"
-            autoComplete="off"
-            className="w-full p-3 rounded bg-adinkra-card text-adinkra-gold h-32"
-          />
-          <input
-            name="skills"
-            value={form.skills}
-            onChange={handleChange}
-            placeholder="Skills/Interests"
-            autoComplete="off"
-            className="w-full p-3 rounded bg-adinkra-card text-adinkra-gold"
-          />
-          <input
-            name="twitter"
-            value={form.twitter}
-            onChange={handleChange}
-            placeholder="Twitter URL"
-            autoComplete="url"
-            className="w-full p-3 rounded bg-adinkra-card text-adinkra-gold"
-          />
-          <input
-            name="linkedin"
-            value={form.linkedin}
-            onChange={handleChange}
-            placeholder="LinkedIn URL"
-            autoComplete="url"
-            className="w-full p-3 rounded bg-adinkra-card text-adinkra-gold"
-          />
-          <input
-            name="portfolio"
-            value={form.portfolio}
-            onChange={handleChange}
-            placeholder="Portfolio Website"
-            autoComplete="url"
-            className="w-full p-3 rounded bg-adinkra-card text-adinkra-gold"
-          />
-
-          <div>
-            <label className="block text-sm text-adinkra-gold mb-1">
-              Profile Photo
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              name="photoFile"
-              onChange={handleChange}
-              autoComplete="off"
-              className="block w-full text-adinkra-gold file:rounded file:border-0 file:p-2 file:bg-adinkra-highlight file:text-black"
-            />
+        {!client && (
+          <div className="bg-red-600 text-white p-4 rounded">
+            Environment variables not loaded. Please check Netlify or Vite setup.
           </div>
+        )}
 
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="mt-4 px-6 py-2 rounded-full bg-adinkra-highlight text-black hover:bg-yellow-400 transition"
-          >
+        <div className="space-y-4">
+          <input name="name" value={form.name} onChange={handleChange} placeholder="Name" className="w-full p-3 rounded bg-adinkra-card text-adinkra-gold" />
+          <textarea name="bio" value={form.bio} onChange={handleChange} placeholder="Bio" className="w-full p-3 rounded bg-adinkra-card text-adinkra-gold h-32" />
+          <input name="skills" value={form.skills} onChange={handleChange} placeholder="Skills" className="w-full p-3 rounded bg-adinkra-card text-adinkra-gold" />
+          <input name="twitter" value={form.twitter} onChange={handleChange} placeholder="Twitter URL" className="w-full p-3 rounded bg-adinkra-card text-adinkra-gold" />
+          <input name="linkedin" value={form.linkedin} onChange={handleChange} placeholder="LinkedIn URL" className="w-full p-3 rounded bg-adinkra-card text-adinkra-gold" />
+          <input name="portfolio" value={form.portfolio} onChange={handleChange} placeholder="Portfolio Website" className="w-full p-3 rounded bg-adinkra-card text-adinkra-gold" />
+          <div>
+            <label className="block text-sm text-adinkra-gold mb-1">Profile Photo</label>
+            <input type="file" accept="image/*" name="photoFile" onChange={handleChange} className="block w-full text-adinkra-gold file:rounded file:border-0 file:p-2 file:bg-adinkra-highlight file:text-black" />
+          </div>
+          <button onClick={handleSave} disabled={saving} className="mt-4 px-6 py-2 rounded-full bg-adinkra-highlight text-black hover:bg-yellow-400 transition">
             {saving ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </main>
-      
+      <Footer />
     </div>
   );
 }
