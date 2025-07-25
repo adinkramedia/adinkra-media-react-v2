@@ -1,4 +1,3 @@
-// src/pages/SacredArticle.jsx
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { createClient } from "contentful";
@@ -63,9 +62,40 @@ export default function SacredArticle() {
         setArticle(entry);
         const slug = entry.fields.slug || entry.sys.id;
         fetchLikes(slug);
+        updateMetaTags(entry);
       })
       .catch(console.error);
   }, [id]);
+
+  const updateMetaTags = (entry) => {
+    const title = entry.fields.title;
+    const description = entry.fields.excerpt || "Sacred & Sovereign article on Adinkra Media";
+    const image = entry.fields.coverImage?.fields?.file?.url
+      ? `https:${entry.fields.coverImage.fields.file.url}`
+      : "";
+    const fullUrl = `https://adinkramedia.com/sacred-article/${entry.sys.id}`;
+
+    const setMeta = (property, content) => {
+      let el = document.querySelector(`meta[property="${property}"]`);
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute("property", property);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", content);
+    };
+
+    setMeta("og:title", title);
+    setMeta("og:description", description);
+    setMeta("og:image", image);
+    setMeta("og:url", fullUrl);
+    setMeta("og:type", "article");
+
+    setMeta("twitter:card", "summary_large_image");
+    setMeta("twitter:title", title);
+    setMeta("twitter:description", description);
+    setMeta("twitter:image", image);
+  };
 
   const fetchLikes = async (slug) => {
     const { data, error } = await supabase
@@ -104,14 +134,12 @@ export default function SacredArticle() {
         .eq("id", existing.id);
 
       if (!updateError) setLikeCount(existing.count + 1);
-      else console.error("Update error:", updateError);
     } else {
       const { error: insertError } = await supabase
         .from("likes")
         .insert({ slug, type: "sacred", count: 1 });
 
       if (!insertError) setLikeCount(1);
-      else console.error("Insert error:", insertError);
     }
 
     setLoadingLike(false);
@@ -132,7 +160,7 @@ export default function SacredArticle() {
   } = article.fields;
 
   const coverUrl = coverImage?.fields?.file?.url;
-  const fullUrl = `https://adinkramedia.com/sacred/${article.sys.id}`;
+  const fullUrl = `https://adinkramedia.com/sacred-article/${article.sys.id}`;
   const shareText = `${Title} - ${excerpt || ""}`;
 
   const shareLinks = {
@@ -224,7 +252,7 @@ export default function SacredArticle() {
           </div>
         )}
       </section>
-    
+     
     </div>
   );
 }

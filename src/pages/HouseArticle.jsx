@@ -1,4 +1,3 @@
-// src/pages/HouseArticle.jsx
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { createClient } from "contentful";
@@ -57,9 +56,40 @@ export default function HouseArticle() {
         setArticle(entry);
         const slug = entry.fields.slug || entry.sys.id;
         fetchLikes(slug);
+        updateMetaTags(entry);
       })
       .catch(console.error);
   }, [id]);
+
+  const updateMetaTags = (entry) => {
+    const title = entry.fields.title;
+    const description = `Read from the House of Ausar on Adinkra Media.`;
+    const image = entry.fields.coverImage?.fields?.file?.url
+      ? `https:${entry.fields.coverImage.fields.file.url}`
+      : "";
+    const fullUrl = `https://adinkramedia.com/house-article/${entry.sys.id}`;
+
+    const setMeta = (property, content) => {
+      let el = document.querySelector(`meta[property="${property}"]`);
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute("property", property);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", content);
+    };
+
+    setMeta("og:title", title);
+    setMeta("og:description", description);
+    setMeta("og:image", image);
+    setMeta("og:url", fullUrl);
+    setMeta("og:type", "article");
+
+    setMeta("twitter:card", "summary_large_image");
+    setMeta("twitter:title", title);
+    setMeta("twitter:description", description);
+    setMeta("twitter:image", image);
+  };
 
   const fetchLikes = async (slug) => {
     const { data, error } = await supabase
@@ -98,14 +128,12 @@ export default function HouseArticle() {
         .eq("id", existing.id);
 
       if (!updateError) setLikeCount(existing.count + 1);
-      else console.error("Update error:", updateError);
     } else {
       const { error: insertError } = await supabase
         .from("likes")
         .insert({ slug, type: "house", count: 1 });
 
       if (!insertError) setLikeCount(1);
-      else console.error("Insert error:", insertError);
     }
 
     setLoadingLike(false);
@@ -113,11 +141,11 @@ export default function HouseArticle() {
 
   if (!article) return <div className="text-center py-20">Loading...</div>;
 
-  const { title, bodyContent, coverImage, publishedDate, slug } = article.fields;
+  const { title, bodyContent, coverImage, publishedDate } = article.fields;
   const coverUrl = coverImage?.fields?.file?.url;
-  const fullUrl = `https://adinkramedia.com/house/${article.sys.id}`;
-
+  const fullUrl = `https://adinkramedia.com/house-article/${article.sys.id}`;
   const shareText = `${title} - ${new Date(publishedDate).toLocaleDateString()}`;
+
   const shareLinks = {
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${fullUrl}`,
     twitter: `https://twitter.com/intent/tweet?url=${fullUrl}&text=${encodeURIComponent(shareText)}`,
@@ -129,6 +157,7 @@ export default function HouseArticle() {
     <div className="bg-adinkra-bg text-adinkra-gold min-h-screen">
       <Header />
       <section className="max-w-3xl mx-auto px-4 py-20">
+        {/* Cover Image */}
         {coverUrl && (
           <img
             src={`https:${coverUrl}`}
@@ -137,7 +166,10 @@ export default function HouseArticle() {
           />
         )}
 
+        {/* Title */}
         <h1 className="text-4xl font-bold mb-4">{title}</h1>
+
+        {/* Date */}
         <p className="text-sm text-adinkra-gold/70 mb-4">
           {new Date(publishedDate).toLocaleDateString()}
         </p>
@@ -168,11 +200,12 @@ export default function HouseArticle() {
           ))}
         </div>
 
+        {/* Article Content */}
         <div className="prose prose-invert prose-lg text-adinkra-gold max-w-none">
           {bodyContent && documentToReactComponents(bodyContent, options)}
         </div>
       </section>
-      
+    
     </div>
   );
 }
