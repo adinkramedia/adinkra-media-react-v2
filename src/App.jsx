@@ -19,7 +19,7 @@ import TVVideoPage from "./pages/TVVideoPage";
 import PremiumTV from "./pages/PremiumTV";
 import PremiumVideo from "./pages/PremiumVideo";
 import Contact from "./pages/Contact";
-import ShareDashboard from "./pages/ShareDashboard"; // ✅ Add this line
+import ShareDashboard from "./pages/ShareDashboard";
 
 export default function App() {
   return (
@@ -31,17 +31,19 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/audio" element={<Audio />} />
           <Route path="/house-of-ausar" element={<HouseOfAusar />} />
-          <Route path="/house-article/:id" element={<HouseArticle />} />
-          <Route path="/sacred-article/:id" element={<SacredArticle />} />
           <Route path="/news" element={<News />} />
-          <Route path="/news-article/:id" element={<NewsArticle />} />
           <Route path="/apply" element={<Apply />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/submit-article" element={<SubmitArticle />} />
           <Route path="/contact" element={<Contact />} />
 
-          {/* Public Contributor Profile Route ✅ */}
+          {/* Shareable Article Routes */}
+          <Route path="/news/:id" element={<NewsArticle />} />
+          <Route path="/sacred/:id" element={<SacredArticle />} />
+          <Route path="/house/:id" element={<HouseArticle />} />
+
+          {/* Contributor Profile */}
           <Route path="/contributor/:id" element={<ShareDashboard />} />
 
           {/* Adinkra TV Routes */}
