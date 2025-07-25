@@ -38,24 +38,29 @@ export default function App() {
           <Route path="/submit-article" element={<SubmitArticle />} />
           <Route path="/contact" element={<Contact />} />
 
-          {/* Shareable Article Routes */}
-          <Route path="/news/:id" element={<NewsArticle />} />
-          <Route path="/sacred/:id" element={<SacredArticle />} />
-          <Route path="/house/:id" element={<HouseArticle />} />
-
-          {/* Contributor Profile */}
+          {/* Public Contributor Profile */}
           <Route path="/contributor/:id" element={<ShareDashboard />} />
 
-          {/* Adinkra TV Routes */}
+          {/* Article Pages (standard + clean share URLs) */}
+          <Route path="/house-article/:id" element={<HouseArticle />} />
+          <Route path="/house/:id" element={<HouseArticle />} />
+
+          <Route path="/sacred-article/:id" element={<SacredArticle />} />
+          <Route path="/sacred/:id" element={<SacredArticle />} />
+
+          <Route path="/news-article/:id" element={<NewsArticle />} />
+          <Route path="/news/:id" element={<NewsArticle />} />
+
+          {/* Adinkra TV */}
           <Route path="/adinkra-tv" element={<AdinkraTV />} />
           <Route path="/tv" element={<Navigate to="/adinkra-tv" replace />} />
           <Route path="/tv-video/:id" element={<TVVideoPage />} />
 
-          {/* Premium TV Routes */}
+          {/* Premium TV */}
           <Route path="/premium-tv" element={<PremiumTV />} />
           <Route path="/premium-tv/:id" element={<PremiumVideo />} />
 
-          {/* 404 Catch-All */}
+          {/* Catch-All */}
           <Route
             path="*"
             element={
