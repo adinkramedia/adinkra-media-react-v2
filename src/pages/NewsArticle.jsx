@@ -1,9 +1,9 @@
-// src/pages/NewsArticle.jsx
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { createClient } from "contentful";
 import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
 import { BLOCKS, MARKS } from "@contentful/rich-text-types";
+import { supabase } from "../lib/supabase";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
@@ -18,29 +18,8 @@ const options = {
     [MARKS.ITALIC]: (text) => <em>{text}</em>,
   },
   renderNode: {
-    [BLOCKS.HEADING_1]: (node, children) => (
-      <h1 className="text-3xl font-bold mb-6">{children}</h1>
-    ),
-    [BLOCKS.HEADING_2]: (node, children) => (
-      <h2 className="text-2xl font-semibold mb-4">{children}</h2>
-    ),
-    [BLOCKS.HEADING_3]: (node, children) => (
-      <h3 className="text-xl font-semibold mb-3">{children}</h3>
-    ),
     [BLOCKS.PARAGRAPH]: (node, children) => (
       <p className="mb-5 leading-relaxed">{children}</p>
-    ),
-    [BLOCKS.UL_LIST]: (node, children) => (
-      <ul className="list-disc pl-6 mb-5">{children}</ul>
-    ),
-    [BLOCKS.OL_LIST]: (node, children) => (
-      <ol className="list-decimal pl-6 mb-5">{children}</ol>
-    ),
-    [BLOCKS.LIST_ITEM]: (node, children) => <li>{children}</li>,
-    [BLOCKS.QUOTE]: (node, children) => (
-      <blockquote className="border-l-4 border-adinkra-highlight pl-4 italic text-adinkra-highlight mb-6">
-        {children}
-      </blockquote>
     ),
   },
 };
@@ -48,16 +27,112 @@ const options = {
 export default function NewsArticle() {
   const { id } = useParams();
   const [article, setArticle] = useState(null);
+  const [likeCount, setLikeCount] = useState(0);
+  const [loadingLike, setLoadingLike] = useState(false);
 
   useEffect(() => {
     client
       .getEntry(id)
       .then((entry) => {
         setArticle(entry);
-        console.log("Contentful article fields:", entry.fields);
+        fetchLikes(entry.fields.slug || entry.sys.id);
+        updateMetaTags(entry);
       })
       .catch(console.error);
   }, [id]);
+
+  const fetchLikes = async (slug) => {
+    const { data, error } = await supabase
+      .from("likes")
+      .select("count")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (data) setLikeCount(data.count || 0);
+    else if (error && error.code !== "PGRST116") {
+      console.error("Fetch error:", error);
+    }
+  };
+
+  const handleLike = async () => {
+    if (!article) return;
+    const slug = article.fields.slug || article.sys.id;
+    setLoadingLike(true);
+
+    const { data: existing, error: fetchError } = await supabase
+      .from("likes")
+      .select("id, count")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (!existing && fetchError && fetchError.code !== "PGRST116") {
+      console.error("Fetch error:", fetchError);
+      setLoadingLike(false);
+      return;
+    }
+
+    if (existing) {
+      const { error: updateError } = await supabase
+        .from("likes")
+        .update({ count: existing.count + 1 })
+        .eq("id", existing.id);
+
+      if (!updateError) setLikeCount(existing.count + 1);
+      else console.error("Update error:", updateError);
+    } else {
+      const { error: insertError } = await supabase
+        .from("likes")
+        .insert({
+          slug,
+          type: "news",
+          count: 1,
+        });
+
+      if (!insertError) setLikeCount(1);
+      else console.error("Insert error:", insertError);
+    }
+
+    setLoadingLike(false);
+  };
+
+  const updateMetaTags = (entry) => {
+    const title = entry.fields.newsArticle;
+    const description = entry.fields.summaryexcerpt || "Adinkra Media article";
+    const image = entry.fields.coverImage?.fields?.file?.url
+      ? `https:${entry.fields.coverImage.fields.file.url}`
+      : "";
+
+    const setMeta = (property, content) => {
+      let el = document.querySelector(`meta[property="${property}"]`);
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute("property", property);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", content);
+    };
+
+    setMeta("og:title", title);
+    setMeta("og:description", description);
+    setMeta("og:image", image);
+    setMeta("og:type", "article");
+    setMeta("twitter:card", "summary_large_image");
+    setMeta("twitter:title", title);
+    setMeta("twitter:description", description);
+    setMeta("twitter:image", image);
+  };
+
+  const handleNativeShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: newsArticle,
+        text: summaryexcerpt,
+        url: fullUrl,
+      });
+    } else {
+      alert("Sharing not supported on this browser.");
+    }
+  };
 
   if (!article) return <div className="text-center py-20">Loading...</div>;
 
@@ -68,8 +143,6 @@ export default function NewsArticle() {
     summaryexcerpt,
     author,
     BodyContent,
-    tagscategory,
-    featured,
     category,
     mediaAssets,
     date,
@@ -77,12 +150,13 @@ export default function NewsArticle() {
 
   const coverUrl = coverImage?.fields?.file?.url;
   const mediaFiles = mediaAssets || [];
+  const fullUrl = `https://adinkramedia.com/news/${article.sys.id}`;
 
   return (
     <div className="bg-adinkra-bg text-adinkra-gold min-h-screen">
       <Header />
       <section className="max-w-4xl mx-auto px-6 py-20">
-        {/* Cover Image */}
+        {/* Cover */}
         {coverUrl && (
           <img
             src={`https:${coverUrl}`}
@@ -93,26 +167,72 @@ export default function NewsArticle() {
 
         {/* Title */}
         <h1 className="text-4xl font-bold mb-2">{newsArticle}</h1>
-
-        {/* Author + Date + Category */}
-        <p className="text-sm text-adinkra-gold/70 mb-4">
+        <p className="text-sm text-adinkra-gold/70 mb-6">
           {author?.fields?.name ? `By ${author.fields.name}` : "By Adinkra Media"} |{" "}
           {date ? new Date(date).toLocaleDateString() : ""} • {category}
         </p>
 
-        {/* Summary/Excerpt */}
+        {/* Like + Share */}
+        <div className="flex flex-wrap items-center gap-4 mb-10">
+          <button
+            onClick={handleLike}
+            disabled={loadingLike}
+            className="bg-adinkra-highlight text-black px-4 py-2 rounded-full hover:bg-yellow-400"
+          >
+            {loadingLike ? "Liking..." : "👍 Like"} ({likeCount})
+          </button>
+
+          <a
+            href={`https://www.facebook.com/sharer/sharer.php?u=${fullUrl}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-adinkra-card px-4 py-2 rounded-full text-adinkra-highlight hover:underline"
+          >
+            Facebook
+          </a>
+          <a
+            href={`https://twitter.com/intent/tweet?url=${fullUrl}&text=${encodeURIComponent(newsArticle + " - " + summaryexcerpt)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-adinkra-card px-4 py-2 rounded-full text-adinkra-highlight hover:underline"
+          >
+            Twitter
+          </a>
+          <a
+            href={`https://www.linkedin.com/sharing/share-offsite/?url=${fullUrl}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-adinkra-card px-4 py-2 rounded-full text-adinkra-highlight hover:underline"
+          >
+            LinkedIn
+          </a>
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(newsArticle + " - " + summaryexcerpt + " " + fullUrl)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-adinkra-card px-4 py-2 rounded-full text-adinkra-highlight hover:underline"
+          >
+            WhatsApp
+          </a>
+          <button
+            onClick={handleNativeShare}
+            className="bg-adinkra-card px-4 py-2 rounded-full text-adinkra-highlight hover:underline"
+          >
+            Share...
+          </button>
+        </div>
+
+        {/* Summary */}
         {summaryexcerpt && (
           <p className="italic text-adinkra-gold/80 mb-8">{summaryexcerpt}</p>
         )}
 
-        {/* Body Content */}
-        {BodyContent && (
-          <div className="prose prose-invert prose-lg text-adinkra-gold max-w-none mb-12">
-            {documentToReactComponents(BodyContent, options)}
-          </div>
-        )}
+        {/* Body */}
+        <div className="prose prose-invert prose-lg text-adinkra-gold max-w-none mb-12">
+          {documentToReactComponents(BodyContent, options)}
+        </div>
 
-        {/* Media Assets */}
+        {/* Media Section */}
         {mediaFiles.length > 0 && (
           <div className="mt-12">
             <h3 className="text-2xl font-semibold mb-4 text-adinkra-highlight">
@@ -134,13 +254,9 @@ export default function NewsArticle() {
                     />
                   );
                 } else if (contentType.startsWith("video")) {
-                  return (
-                    <video key={i} src={url} controls className="w-full rounded" />
-                  );
+                  return <video key={i} src={url} controls className="w-full rounded" />;
                 } else if (contentType.startsWith("audio")) {
-                  return (
-                    <audio key={i} src={url} controls className="w-full" />
-                  );
+                  return <audio key={i} src={url} controls className="w-full" />;
                 } else {
                   return (
                     <a

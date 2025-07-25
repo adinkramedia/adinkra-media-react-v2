@@ -21,6 +21,7 @@ export default function Dashboard() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [trendingArticles, setTrendingArticles] = useState([]);
   const [sacredPosts, setSacredPosts] = useState([]);
+  const [copied, setCopied] = useState(false); // NEW STATE
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -78,6 +79,14 @@ export default function Dashboard() {
         );
     }
   }, [contributor?.id, contributor?.name]);
+
+  const handleShare = () => {
+    const url = `${window.location.origin}/contributor/${contributor.id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   if (isLoading || loadingProfile) {
     return (
@@ -159,6 +168,16 @@ export default function Dashboard() {
               <p><strong>Date Joined:</strong> {new Date(contributor.dateJoined).toLocaleDateString()}</p>
             )}
 
+            {/* 🔗 Share Button */}
+            <div>
+              <button
+                onClick={handleShare}
+                className="px-6 py-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition"
+              >
+                {copied ? "Link Copied!" : "Share My Dashboard"}
+              </button>
+            </div>
+
             {/* Action Buttons */}
             <div className="mt-8 flex flex-col sm:flex-row gap-4 flex-wrap">
               <button
@@ -219,8 +238,6 @@ export default function Dashboard() {
           </div>
         )}
       </section>
-
-      
     </div>
   );
 }

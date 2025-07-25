@@ -6,6 +6,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
 import { BLOCKS } from "@contentful/rich-text-types";
+import { supabase } from "../lib/supabase";
 
 const client = createClient({
   space: "8e41pkw4is56",
@@ -46,18 +47,83 @@ const options = {
 export default function HouseArticle() {
   const { id } = useParams();
   const [article, setArticle] = useState(null);
+  const [likeCount, setLikeCount] = useState(0);
+  const [loadingLike, setLoadingLike] = useState(false);
 
   useEffect(() => {
     client
       .getEntry(id)
-      .then(setArticle)
+      .then((entry) => {
+        setArticle(entry);
+        const slug = entry.fields.slug || entry.sys.id;
+        fetchLikes(slug);
+      })
       .catch(console.error);
   }, [id]);
 
+  const fetchLikes = async (slug) => {
+    const { data, error } = await supabase
+      .from("likes")
+      .select("count")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (data) setLikeCount(data.count || 0);
+    else if (error && error.code !== "PGRST116") {
+      console.error("Fetch error:", error);
+    }
+  };
+
+  const handleLike = async () => {
+    if (!article) return;
+    const slug = article.fields.slug || article.sys.id;
+    setLoadingLike(true);
+
+    const { data: existing, error: fetchError } = await supabase
+      .from("likes")
+      .select("id, count")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (!existing && fetchError && fetchError.code !== "PGRST116") {
+      console.error("Fetch error:", fetchError);
+      setLoadingLike(false);
+      return;
+    }
+
+    if (existing) {
+      const { error: updateError } = await supabase
+        .from("likes")
+        .update({ count: existing.count + 1 })
+        .eq("id", existing.id);
+
+      if (!updateError) setLikeCount(existing.count + 1);
+      else console.error("Update error:", updateError);
+    } else {
+      const { error: insertError } = await supabase
+        .from("likes")
+        .insert({ slug, type: "house", count: 1 });
+
+      if (!insertError) setLikeCount(1);
+      else console.error("Insert error:", insertError);
+    }
+
+    setLoadingLike(false);
+  };
+
   if (!article) return <div className="text-center py-20">Loading...</div>;
 
-  const { title, bodyContent, coverImage, publishedDate } = article.fields;
+  const { title, bodyContent, coverImage, publishedDate, slug } = article.fields;
   const coverUrl = coverImage?.fields?.file?.url;
+  const fullUrl = `https://adinkramedia.com/house/${article.sys.id}`;
+
+  const shareText = `${title} - ${new Date(publishedDate).toLocaleDateString()}`;
+  const shareLinks = {
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${fullUrl}`,
+    twitter: `https://twitter.com/intent/tweet?url=${fullUrl}&text=${encodeURIComponent(shareText)}`,
+    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${fullUrl}`,
+    whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText + " " + fullUrl)}`,
+  };
 
   return (
     <div className="bg-adinkra-bg text-adinkra-gold min-h-screen">
@@ -70,15 +136,43 @@ export default function HouseArticle() {
             className="w-full rounded-lg mb-6"
           />
         )}
+
         <h1 className="text-4xl font-bold mb-4">{title}</h1>
-        <p className="text-sm text-adinkra-gold/70 mb-8">
+        <p className="text-sm text-adinkra-gold/70 mb-4">
           {new Date(publishedDate).toLocaleDateString()}
         </p>
+
+        {/* Like Button */}
+        <div className="flex items-center gap-4 mb-8">
+          <button
+            onClick={handleLike}
+            disabled={loadingLike}
+            className="bg-adinkra-highlight text-black px-4 py-2 rounded-full hover:bg-yellow-400"
+          >
+            {loadingLike ? "Liking..." : "👍 Like"} ({likeCount})
+          </button>
+        </div>
+
+        {/* Share Buttons */}
+        <div className="flex gap-3 flex-wrap mb-10">
+          {Object.entries(shareLinks).map(([platform, url]) => (
+            <a
+              key={platform}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-adinkra-card px-4 py-2 rounded-full text-adinkra-highlight hover:underline"
+            >
+              Share on {platform.charAt(0).toUpperCase() + platform.slice(1)}
+            </a>
+          ))}
+        </div>
+
         <div className="prose prose-invert prose-lg text-adinkra-gold max-w-none">
           {bodyContent && documentToReactComponents(bodyContent, options)}
         </div>
       </section>
-    
+      
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createClient } from "contentful";
+import { supabase } from "../lib/supabase";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import AccordionFaq from "../components/AccordionFaq";
@@ -30,14 +31,77 @@ const licensingFaqs = [
 
 export default function Audio() {
   const [tracks, setTracks] = useState([]);
+  const [likes, setLikes] = useState({});
+  const [loadingLikes, setLoadingLikes] = useState({});
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   useEffect(() => {
     client
       .getEntries({ content_type: "audioTrack" })
-      .then((res) => setTracks(res.items))
+      .then((res) => {
+        setTracks(res.items);
+        res.items.forEach((track) => {
+          const slug = track.fields.slug || track.sys.id;
+          fetchLikeCount(slug);
+        });
+      })
       .catch(console.error);
   }, []);
+
+  const fetchLikeCount = async (slug) => {
+    const { data, error } = await supabase
+      .from("likes")
+      .select("count")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (data) {
+      setLikes((prev) => ({ ...prev, [slug]: data.count || 0 }));
+    } else if (error && error.code !== "PGRST116") {
+      console.error("Fetch error:", error);
+    }
+  };
+
+  const handleLike = async (slug) => {
+    setLoadingLikes((prev) => ({ ...prev, [slug]: true }));
+
+    const { data: existing, error: fetchError } = await supabase
+      .from("likes")
+      .select("id, count")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (!existing && fetchError && fetchError.code !== "PGRST116") {
+      console.error("Fetch error:", fetchError);
+      setLoadingLikes((prev) => ({ ...prev, [slug]: false }));
+      return;
+    }
+
+    if (existing) {
+      const { error: updateError } = await supabase
+        .from("likes")
+        .update({ count: existing.count + 1 })
+        .eq("id", existing.id);
+
+      if (!updateError) {
+        setLikes((prev) => ({ ...prev, [slug]: existing.count + 1 }));
+      } else {
+        console.error("Update error:", updateError);
+      }
+    } else {
+      const { error: insertError } = await supabase
+        .from("likes")
+        .insert({ slug, type: "audio", count: 1 });
+
+      if (!insertError) {
+        setLikes((prev) => ({ ...prev, [slug]: 1 }));
+      } else {
+        console.error("Insert error:", insertError);
+      }
+    }
+
+    setLoadingLikes((prev) => ({ ...prev, [slug]: false }));
+  };
 
   const allCategories = ["All", ...new Set(tracks.map((t) => t.fields.category || "Audio"))];
 
@@ -50,7 +114,7 @@ export default function Audio() {
     <div className="bg-adinkra-bg text-adinkra-gold min-h-screen">
       <Header />
 
-      {/* Hero Section */}
+      {/* Hero */}
       <section className="relative w-full h-[80vh] bg-black">
         <div
           className="absolute top-0 left-0 w-full h-full bg-cover bg-center hidden md:block"
@@ -72,7 +136,7 @@ export default function Audio() {
         </div>
       </section>
 
-      {/* Category Filter */}
+      {/* Filters */}
       <section className="max-w-6xl mx-auto px-6 pt-16">
         <div className="flex flex-wrap justify-center gap-3 mb-10">
           {allCategories.map((cat) => (
@@ -94,6 +158,7 @@ export default function Audio() {
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
           {filteredTracks.map((item) => {
             const f = item.fields;
+            const slug = f.slug || item.sys.id;
             const title = f.trackTitle;
             const price = f.freeDownload
               ? "Free Download"
@@ -118,15 +183,24 @@ export default function Audio() {
                 <h3 className="text-xl font-semibold mb-1 text-adinkra-gold">
                   {title}
                 </h3>
-                <p className="text-sm mb-3 text-adinkra-gold/70">{category}</p>
-                <p className="text-sm font-bold mb-3 text-adinkra-gold">
-                  {price}
-                </p>
+                <p className="text-sm mb-1 text-adinkra-gold/70">{category}</p>
+                <p className="text-sm font-bold mb-3 text-adinkra-gold">{price}</p>
 
-                {/* Secure Audio Preview */}
+                {/* Like Button */}
+                <div className="mb-3">
+                  <button
+                    onClick={() => handleLike(slug)}
+                    disabled={loadingLikes[slug]}
+                    className="bg-adinkra-highlight text-black px-3 py-1 rounded-full text-sm hover:bg-yellow-400"
+                  >
+                    {loadingLikes[slug] ? "Liking..." : `👍 Like (${likes[slug] || 0})`}
+                  </button>
+                </div>
+
+                {/* Preview */}
                 {preview && <WaveformPlayer audioUrl={`https:${preview}`} />}
 
-                {/* Buttons */}
+                {/* Download / Buy */}
                 <div className="mt-4">
                   {f.freeDownload ? (
                     download && (
@@ -152,9 +226,7 @@ export default function Audio() {
         </div>
       </section>
 
-      {/* FAQ */}
       <AccordionFaq title="Adinkra Audio Licensing FAQ" faqs={licensingFaqs} />
-
       
     </div>
   );

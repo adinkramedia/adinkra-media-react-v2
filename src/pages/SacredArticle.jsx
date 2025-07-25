@@ -1,8 +1,10 @@
+// src/pages/SacredArticle.jsx
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { createClient } from "contentful";
 import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
 import { BLOCKS, MARKS } from "@contentful/rich-text-types";
+import { supabase } from "../lib/supabase";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
@@ -51,13 +53,69 @@ const options = {
 export default function SacredArticle() {
   const { id } = useParams();
   const [article, setArticle] = useState(null);
+  const [likeCount, setLikeCount] = useState(0);
+  const [loadingLike, setLoadingLike] = useState(false);
 
   useEffect(() => {
     client
       .getEntry(id)
-      .then(setArticle)
+      .then((entry) => {
+        setArticle(entry);
+        const slug = entry.fields.slug || entry.sys.id;
+        fetchLikes(slug);
+      })
       .catch(console.error);
   }, [id]);
+
+  const fetchLikes = async (slug) => {
+    const { data, error } = await supabase
+      .from("likes")
+      .select("count")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (data) setLikeCount(data.count || 0);
+    else if (error && error.code !== "PGRST116") {
+      console.error("Fetch error:", error);
+    }
+  };
+
+  const handleLike = async () => {
+    if (!article) return;
+    const slug = article.fields.slug || article.sys.id;
+    setLoadingLike(true);
+
+    const { data: existing, error: fetchError } = await supabase
+      .from("likes")
+      .select("id, count")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (!existing && fetchError && fetchError.code !== "PGRST116") {
+      console.error("Fetch error:", fetchError);
+      setLoadingLike(false);
+      return;
+    }
+
+    if (existing) {
+      const { error: updateError } = await supabase
+        .from("likes")
+        .update({ count: existing.count + 1 })
+        .eq("id", existing.id);
+
+      if (!updateError) setLikeCount(existing.count + 1);
+      else console.error("Update error:", updateError);
+    } else {
+      const { error: insertError } = await supabase
+        .from("likes")
+        .insert({ slug, type: "sacred", count: 1 });
+
+      if (!insertError) setLikeCount(1);
+      else console.error("Insert error:", insertError);
+    }
+
+    setLoadingLike(false);
+  };
 
   if (!article) return <div className="text-center py-20">Loading...</div>;
 
@@ -70,9 +128,19 @@ export default function SacredArticle() {
     body: bodyContent,
     wisdomTakeaway,
     reflections,
+    slug,
   } = article.fields;
 
   const coverUrl = coverImage?.fields?.file?.url;
+  const fullUrl = `https://adinkramedia.com/sacred/${article.sys.id}`;
+  const shareText = `${Title} - ${excerpt || ""}`;
+
+  const shareLinks = {
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${fullUrl}`,
+    twitter: `https://twitter.com/intent/tweet?url=${fullUrl}&text=${encodeURIComponent(shareText)}`,
+    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${fullUrl}`,
+    whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText + " " + fullUrl)}`,
+  };
 
   return (
     <div className="bg-adinkra-bg text-adinkra-gold min-h-screen">
@@ -100,6 +168,32 @@ export default function SacredArticle() {
         {excerpt && (
           <p className="italic text-adinkra-gold/80 mb-8">{excerpt}</p>
         )}
+
+        {/* Like Button */}
+        <div className="flex items-center gap-4 mb-8">
+          <button
+            onClick={handleLike}
+            disabled={loadingLike}
+            className="bg-adinkra-highlight text-black px-4 py-2 rounded-full hover:bg-yellow-400"
+          >
+            {loadingLike ? "Liking..." : "👍 Like"} ({likeCount})
+          </button>
+        </div>
+
+        {/* Share Buttons */}
+        <div className="flex gap-3 flex-wrap mb-10">
+          {Object.entries(shareLinks).map(([platform, url]) => (
+            <a
+              key={platform}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-adinkra-card px-4 py-2 rounded-full text-adinkra-highlight hover:underline"
+            >
+              Share on {platform.charAt(0).toUpperCase() + platform.slice(1)}
+            </a>
+          ))}
+        </div>
 
         {/* Body Content */}
         {bodyContent && (
@@ -130,7 +224,7 @@ export default function SacredArticle() {
           </div>
         )}
       </section>
-      
+    
     </div>
   );
 }

@@ -18,7 +18,8 @@ import AdinkraTV from "./pages/AdinkraTV";
 import TVVideoPage from "./pages/TVVideoPage";
 import PremiumTV from "./pages/PremiumTV";
 import PremiumVideo from "./pages/PremiumVideo";
-import Contact from "./pages/Contact"
+import Contact from "./pages/Contact";
+import ShareDashboard from "./pages/ShareDashboard"; // ✅ Add this line
 
 export default function App() {
   return (
@@ -40,6 +41,9 @@ export default function App() {
           <Route path="/submit-article" element={<SubmitArticle />} />
           <Route path="/contact" element={<Contact />} />
 
+          {/* Public Contributor Profile Route ✅ */}
+          <Route path="/contributor/:id" element={<ShareDashboard />} />
+
           {/* Adinkra TV Routes */}
           <Route path="/adinkra-tv" element={<AdinkraTV />} />
           <Route path="/tv" element={<Navigate to="/adinkra-tv" replace />} />
@@ -48,6 +52,7 @@ export default function App() {
           {/* Premium TV Routes */}
           <Route path="/premium-tv" element={<PremiumTV />} />
           <Route path="/premium-tv/:id" element={<PremiumVideo />} />
+
           {/* 404 Catch-All */}
           <Route
             path="*"
