@@ -5,6 +5,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import AccordionFaq from "../components/AccordionFaq";
 import WaveformPlayer from "../components/WaveformPlayer";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const SPACE_ID = "8e41pkw4is56";
 const ACCESS_TOKEN = "qM0FzdQIPkX6VF4rt8wXzzLiPdgbjmmNGzHarCK0l8I";
@@ -35,9 +36,17 @@ export default function Audio() {
   const [loadingLikes, setLoadingLikes] = useState({});
   const [selectedCategory, setSelectedCategory] = useState("All");
 
+  const location = useLocation();
+  const navigate = useNavigate();
+  const query = new URLSearchParams(location.search);
+  const initialPage = parseInt(query.get("page")) || 1;
+  const [currentPage, setCurrentPage] = useState(initialPage);
+
+  const itemsPerPage = 6;
+
   useEffect(() => {
     client
-      .getEntries({ content_type: "audioTrack" })
+      .getEntries({ content_type: "audioTrack", order: "-sys.createdAt" })
       .then((res) => {
         setTracks(res.items);
         res.items.forEach((track) => {
@@ -110,6 +119,23 @@ export default function Audio() {
     return selectedCategory === "All" || cat === selectedCategory;
   });
 
+  const totalPages = Math.ceil(filteredTracks.length / itemsPerPage);
+  const paginatedTracks = filteredTracks.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    navigate(`?page=${page}`);
+  };
+
+  const handleCategoryChange = (cat) => {
+    setSelectedCategory(cat);
+    setCurrentPage(1);
+    navigate(`?page=1`);
+  };
+
   return (
     <div className="bg-adinkra-bg text-adinkra-gold min-h-screen">
       <Header />
@@ -142,7 +168,7 @@ export default function Audio() {
           {allCategories.map((cat) => (
             <button
               key={cat}
-              onClick={() => setSelectedCategory(cat)}
+              onClick={() => handleCategoryChange(cat)}
               className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
                 selectedCategory === cat
                   ? "bg-adinkra-highlight text-adinkra-bg"
@@ -156,7 +182,7 @@ export default function Audio() {
 
         {/* Track Grid */}
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-          {filteredTracks.map((item) => {
+          {paginatedTracks.map((item) => {
             const f = item.fields;
             const slug = f.slug || item.sys.id;
             const title = f.trackTitle;
@@ -186,7 +212,6 @@ export default function Audio() {
                 <p className="text-sm mb-1 text-adinkra-gold/70">{category}</p>
                 <p className="text-sm font-bold mb-3 text-adinkra-gold">{price}</p>
 
-                {/* Like Button */}
                 <div className="mb-3">
                   <button
                     onClick={() => handleLike(slug)}
@@ -197,20 +222,16 @@ export default function Audio() {
                   </button>
                 </div>
 
-                {/* Preview */}
                 {preview && <WaveformPlayer audioUrl={`https:${preview}`} />}
 
-                {/* Download / Buy */}
                 <div className="mt-4">
-                  {f.freeDownload ? (
-                    download && (
-                      <button
-                        onClick={() => window.open(`https:${download}`, "_blank")}
-                        className="bg-adinkra-highlight text-adinkra-bg font-semibold py-2 px-4 rounded hover:bg-yellow-500 transition"
-                      >
-                        ⬇ Free Download
-                      </button>
-                    )
+                  {f.freeDownload && download ? (
+                    <button
+                      onClick={() => window.open(`https:${download}`, "_blank")}
+                      className="bg-adinkra-highlight text-adinkra-bg font-semibold py-2 px-4 rounded hover:bg-yellow-500 transition"
+                    >
+                      ⬇ Free Download
+                    </button>
                   ) : gumroadLink ? (
                     <button
                       onClick={() => window.open(gumroadLink, "_blank")}
@@ -224,6 +245,41 @@ export default function Audio() {
             );
           })}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center flex-wrap gap-3 mt-12">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-adinkra-highlight text-adinkra-bg rounded disabled:opacity-50"
+            >
+              ← Previous
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+              <button
+                key={pageNum}
+                onClick={() => handlePageChange(pageNum)}
+                className={`px-3 py-1.5 rounded ${
+                  pageNum === currentPage
+                    ? "bg-adinkra-highlight text-adinkra-bg font-semibold"
+                    : "bg-adinkra-card text-adinkra-gold/70 hover:bg-adinkra-highlight/30"
+                }`}
+              >
+                {pageNum}
+              </button>
+            ))}
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-adinkra-highlight text-adinkra-bg rounded disabled:opacity-50"
+            >
+              Next →
+            </button>
+          </div>
+        )}
       </section>
 
       <AccordionFaq title="Adinkra Audio Licensing FAQ" faqs={licensingFaqs} />

@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { createClient } from "contentful";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { Link } from "react-router-dom";
-import AuthButton from "../components/AuthButton";  // Import AuthButton here
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import AuthButton from "../components/AuthButton";
 
 const SPACE_ID = "8e41pkw4is56";
 const ACCESS_TOKEN = "qM0FzdQIPkX6VF4rt8wXzzLiPdgbjmmNGzHarCK0l8I";
@@ -27,9 +27,19 @@ export default function News() {
   const [articles, setArticles] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
 
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Extract ?page from URL
+  const query = new URLSearchParams(location.search);
+  const initialPage = parseInt(query.get("page")) || 1;
+  const [currentPage, setCurrentPage] = useState(initialPage);
+
+  const itemsPerPage = 6;
+
   useEffect(() => {
     client
-      .getEntries({ content_type: "africanTrendingNews" })
+      .getEntries({ content_type: "africanTrendingNews", order: "-fields.date" })
       .then((res) => setArticles(res.items))
       .catch(console.error);
   }, []);
@@ -42,6 +52,24 @@ export default function News() {
             post.fields.category &&
             post.fields.category.toLowerCase() === selectedCategory.toLowerCase()
         );
+
+  const totalPages = Math.ceil(filteredArticles.length / itemsPerPage);
+
+  const paginatedArticles = filteredArticles.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    navigate(`?page=${page}`);
+  };
+
+  const handleCategoryChange = (cat) => {
+    setSelectedCategory(cat);
+    setCurrentPage(1);
+    navigate(`?page=1`);
+  };
 
   return (
     <div className="bg-adinkra-bg text-adinkra-gold min-h-screen">
@@ -75,12 +103,12 @@ export default function News() {
           {categories.map((cat) => (
             <button
               key={cat}
+              onClick={() => handleCategoryChange(cat)}
               className={`px-4 py-2 text-sm rounded-full font-medium transition ${
                 selectedCategory === cat
                   ? "bg-adinkra-highlight text-adinkra-bg"
                   : "bg-adinkra-card text-adinkra-gold/70 hover:bg-adinkra-highlight/30"
               }`}
-              onClick={() => setSelectedCategory(cat)}
             >
               {cat}
             </button>
@@ -89,7 +117,7 @@ export default function News() {
 
         {/* News Grid */}
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-          {filteredArticles.map((post) => {
+          {paginatedArticles.map((post) => {
             const { coverImage, summaryExcerpt, newsArticle, date, category } = post.fields;
             const cover = coverImage?.fields?.file?.url;
             const postDate = new Date(date).toLocaleDateString();
@@ -105,10 +133,10 @@ export default function News() {
                     style={{ backgroundImage: `url(https:${cover})` }}
                   />
                 )}
-                <h3 className="text-xl font-semibold mb-1 text-adinkra-gold">{newsArticle}</h3>
-                <p className="text-sm mb-1 text-adinkra-gold/60 italic">{category}</p>
-                <p className="text-sm mb-2 text-adinkra-gold/70">{postDate}</p>
-                <p className="text-sm mb-4 text-adinkra-gold/90">{summaryExcerpt}</p>
+                <h3 className="text-xl font-semibold mb-1">{newsArticle}</h3>
+                <p className="text-sm italic text-adinkra-gold/60 mb-1">{category}</p>
+                <p className="text-sm text-adinkra-gold/70 mb-2">{postDate}</p>
+                <p className="text-sm text-adinkra-gold/90 mb-4">{summaryExcerpt}</p>
                 <Link
                   to={`/news-article/${post.sys.id}`}
                   className="text-adinkra-highlight font-semibold hover:underline"
@@ -119,9 +147,45 @@ export default function News() {
             );
           })}
         </div>
+
+        {/* Pagination Buttons */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center flex-wrap gap-3 mt-10">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-adinkra-highlight text-adinkra-bg rounded disabled:opacity-50"
+            >
+              ← Previous
+            </button>
+
+            {/* Numbered buttons */}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+              <button
+                key={pageNum}
+                onClick={() => handlePageChange(pageNum)}
+                className={`px-3 py-1.5 rounded ${
+                  pageNum === currentPage
+                    ? "bg-adinkra-highlight text-adinkra-bg font-semibold"
+                    : "bg-adinkra-card text-adinkra-gold/70 hover:bg-adinkra-highlight/30"
+                }`}
+              >
+                {pageNum}
+              </button>
+            ))}
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-adinkra-highlight text-adinkra-bg rounded disabled:opacity-50"
+            >
+              Next →
+            </button>
+          </div>
+        )}
       </section>
 
-      {/* Contributor CTA Section (Bottom) */}
+      {/* Contributor CTA */}
       <section className="bg-adinkra-highlight/10 border border-adinkra-highlight rounded-lg max-w-5xl mx-auto my-16 px-6 py-10 text-center mx-4 md:mx-auto">
         <h2 className="text-2xl md:text-3xl font-bold text-adinkra-highlight mb-4">
           Want to Become a Contributor?
@@ -136,7 +200,6 @@ export default function News() {
           Apply to Contribute →
         </Link>
 
-        {/* Login button for contributor dashboard */}
         <div className="mt-6">
           <p className="mb-2 text-adinkra-gold/80 font-semibold text-sm">
             Already a contributor? Log in to your dashboard:
