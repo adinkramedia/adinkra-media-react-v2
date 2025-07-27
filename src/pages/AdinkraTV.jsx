@@ -109,7 +109,7 @@ export default function AdinkraTV() {
       {/* 🔴 Now Playing - Live News */}
       <section className="max-w-6xl mx-auto px-6 py-12">
         <h2 className="text-xl font-bold mb-6 uppercase tracking-wide text-adinkra-highlight">
-          Now Playing — Live News
+          Live News
         </h2>
         <div className="grid gap-6 md:grid-cols-3">
           {liveChannels.map((channel) => (
