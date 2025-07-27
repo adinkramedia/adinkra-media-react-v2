@@ -1,3 +1,5 @@
+// src/pages/AdinkraTV.jsx
+
 import { useEffect, useState } from "react";
 import { createClient } from "contentful";
 import Header from "../components/Header";
@@ -12,9 +14,9 @@ const client = createClient({ space: SPACE_ID, accessToken: ACCESS_TOKEN });
 const getEmbedUrl = (url) => {
   if (!url) return "";
   const watchMatch = url.match(/watch\?v=([a-zA-Z0-9_-]+)/);
-  if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}`;
+  if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}?autoplay=1`;
   const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
-  if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`;
+  if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}?autoplay=1`;
   return url;
 };
 
@@ -28,6 +30,11 @@ const plainTextDescription = (richText) => {
 export default function AdinkraTV() {
   const [videos, setVideos] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [activeStreams, setActiveStreams] = useState({
+    tvc: false,
+    africanews: false,
+    arise: false,
+  });
 
   useEffect(() => {
     client
@@ -61,40 +68,95 @@ export default function AdinkraTV() {
 
       {/* Hero Section */}
       <section className="relative w-full h-[70vh] bg-black">
-        {/* Desktop Hero */}
         <div
           className="absolute inset-0 bg-cover bg-center hidden md:block"
           style={{ backgroundImage: "url('/tv-hero-desktop.jpg')" }}
         />
-        {/* Mobile Hero */}
         <div
           className="absolute top-0 left-0 w-full h-full bg-cover bg-center md:hidden"
           style={{ backgroundImage: "url('/tv-hero-mobile.jpg')" }}
         />
-        {/* Overlay + Text */}
         <div className="relative z-10 flex flex-col items-center justify-center h-full bg-black/60 text-center px-4">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Adinkra TV</h1>
           <p className="text-adinkra-gold/80 max-w-2xl mx-auto text-lg mb-4">
             African documentaries, edutainment, indie films, and original content — streaming for the next generation.
           </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Link
-              to="/submit-tv"
-              className="bg-adinkra-highlight hover:bg-adinkra-highlight/90 text-adinkra-bg px-4 py-2 rounded-full text-sm font-medium transition"
-            >
-              Submit a Video
-            </Link>
-            <Link
-              to="/premium-tv"
-              className="bg-adinkra-card border border-adinkra-highlight hover:bg-adinkra-highlight/30 text-adinkra-gold/80 px-4 py-2 rounded-full text-sm font-medium transition"
-            >
-              Explore Premium Videos
-            </Link>
+          <Link
+            to="/premium-tv"
+            className="bg-adinkra-card border border-adinkra-highlight hover:bg-adinkra-highlight/30 text-adinkra-gold/80 px-4 py-2 rounded-full text-sm font-medium transition"
+          >
+            Explore Premium Videos
+          </Link>
+        </div>
+      </section>
+
+      {/* 🔴 Live TV Channels with Thumbnails */}
+      <section className="max-w-6xl mx-auto px-6 py-10">
+        <h2 className="text-2xl font-semibold mb-6 text-adinkra-highlight">Live News</h2>
+        <div className="grid gap-6 md:grid-cols-3">
+          {/* TVC News */}
+          <div className="relative aspect-video group cursor-pointer" onClick={() => setActiveStreams(prev => ({ ...prev, tvc: true }))}>
+            {activeStreams.tvc ? (
+              <iframe
+                src="https://www.youtube.com/embed/b-Yzp0l8cAM?autoplay=1"
+                className="w-full h-full border-none"
+                title="TVC News Live"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            ) : (
+              <div className="relative w-full h-full">
+                <img src="/tvc-news-thumb.jpg" alt="TVC News" className="w-full h-full object-cover rounded" />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white font-bold text-xl">
+                  ▶ TVC News
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Africanews */}
+          <div className="relative aspect-video group cursor-pointer" onClick={() => setActiveStreams(prev => ({ ...prev, africanews: true }))}>
+            {activeStreams.africanews ? (
+              <iframe
+                src="https://www.youtube.com/embed/NQjabLGdP5g?autoplay=1"
+                className="w-full h-full border-none"
+                title="Africanews Live"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            ) : (
+              <div className="relative w-full h-full">
+                <img src="/africanews-thumb.jpg" alt="Africanews" className="w-full h-full object-cover rounded" />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white font-bold text-xl">
+                  ▶ Africanews
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Arise News */}
+          <div className="relative aspect-video group cursor-pointer" onClick={() => setActiveStreams(prev => ({ ...prev, arise: true }))}>
+            {activeStreams.arise ? (
+              <iframe
+                src="https://www.youtube.com/embed/srJg6ZIPmvU?autoplay=1"
+                className="w-full h-full border-none"
+                title="Arise News Live"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            ) : (
+              <div className="relative w-full h-full">
+                <img src="/arise-news-thumb.jpg" alt="Arise News" className="w-full h-full object-cover rounded" />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white font-bold text-xl">
+                  ▶ Arise News
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Featured Section */}
+      {/* 🌟 Featured Section */}
       {featured && (
         <section className="max-w-5xl mx-auto px-6 py-12">
           <h2 className="text-2xl font-semibold mb-4 text-adinkra-highlight">Featured</h2>
@@ -113,7 +175,7 @@ export default function AdinkraTV() {
         </section>
       )}
 
-      {/* Category Filter */}
+      {/* 🎯 Category Filter */}
       <section className="max-w-6xl mx-auto px-6 py-6">
         <div className="flex flex-wrap justify-center gap-3 mb-8">
           {categories.map((cat) => (
@@ -131,7 +193,7 @@ export default function AdinkraTV() {
           ))}
         </div>
 
-        {/* Video Grid */}
+        {/* 📺 Video Grid */}
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
           {filteredVideos
             .filter((video) => !video.fields.featured)
