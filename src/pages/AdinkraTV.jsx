@@ -1,4 +1,5 @@
 // src/pages/AdinkraTV.jsx
+
 import { useEffect, useState } from "react";
 import { createClient } from "contentful";
 import Header from "../components/Header";
@@ -7,29 +8,42 @@ import { Link } from "react-router-dom";
 
 const SPACE_ID = "8e41pkw4is56";
 const ACCESS_TOKEN = "qM0FzdQIPkX6VF4rt8wXzzLiPdgbjmmNGzHarCK0l8I";
-
 const client = createClient({ space: SPACE_ID, accessToken: ACCESS_TOKEN });
+
+const liveChannels = [
+  {
+    name: "TVC News",
+    thumb: "/tvc-news-thumb.jpg",
+    embedUrl: "https://www.youtube.com/embed/b-Yzp0l8cAM?si=lGq1-hez6eAHhuEq",
+  },
+  {
+    name: "Africanews",
+    thumb: "/africanews-thumb.jpg",
+    embedUrl: "https://www.youtube.com/embed/NQjabLGdP5g?si=3yzGWlHyOENxTdRv",
+  },
+  {
+    name: "Arise News",
+    thumb: "/arise-news-thumb.jpg",
+    embedUrl: "https://www.youtube.com/embed/srJg6ZIPmvU?si=7StqTVvIN_CGVzCM",
+  },
+];
 
 const getEmbedUrl = (url) => {
   if (!url) return "";
-  const watchMatch = url.match(/watch\?v=([a-zA-Z0-9_-]+)/);
-  if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}`;
-  const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
-  if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`;
-  return url;
+  const match = url.match(/(watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+  return match ? `https://www.youtube.com/embed/${match[2]}` : url;
 };
 
-const plainTextDescription = (richText) => {
-  return richText?.content
+const plainTextDescription = (richText) =>
+  richText?.content
     ?.map((node) => node.content?.[0]?.value || "")
     .join(" ")
     .trim();
-};
 
 export default function AdinkraTV() {
   const [videos, setVideos] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [activeLive, setActiveLive] = useState(null); // for controlling which live stream is playing
+  const [activeLive, setActiveLive] = useState({});
 
   useEffect(() => {
     client
@@ -38,14 +52,7 @@ export default function AdinkraTV() {
       .catch(console.error);
   }, []);
 
-  const categories = [
-    "All",
-    "Documentary",
-    "Edutainment",
-    "Film",
-    "Adinkra Original",
-  ];
-
+  const categories = ["All", "Documentary", "Edutainment", "Film", "Adinkra Original"];
   const filteredVideos =
     selectedCategory === "All"
       ? videos
@@ -57,32 +64,11 @@ export default function AdinkraTV() {
 
   const featured = videos.find((video) => video.fields.featured);
 
-  const liveChannels = [
-    {
-      name: "TVC News",
-      thumbnail: "/tvc-news-thumb.jpg",
-      embedUrl: "https://www.youtube.com/embed/b-Yzp0l8cAM?si=lGq1-hez6eAHhuEq",
-      id: "tvc",
-    },
-    {
-      name: "Africanews",
-      thumbnail: "/africanews-thumb.jpg",
-      embedUrl: "https://www.youtube.com/embed/NQjabLGdP5g?si=3yzGWlHyOENxTdRv",
-      id: "africanews",
-    },
-    {
-      name: "Arise News",
-      thumbnail: "/arise-news-thumb.jpg",
-      embedUrl: "https://www.youtube.com/embed/srJg6ZIPmvU?si=7StqTVvIN_CGVzCM",
-      id: "arise",
-    },
-  ];
-
   return (
     <div className="bg-adinkra-bg text-adinkra-gold min-h-screen">
       <Header />
 
-      {/* Hero Section */}
+      {/* Hero */}
       <section className="relative w-full h-[70vh] bg-black">
         <div
           className="absolute inset-0 bg-cover bg-center hidden md:block"
@@ -106,16 +92,16 @@ export default function AdinkraTV() {
         </div>
       </section>
 
-      {/* 🔴 Now Playing - Live News */}
-      <section className="max-w-6xl mx-auto px-6 py-12">
-        <h2 className="text-xl font-bold mb-6 uppercase tracking-wide text-adinkra-highlight">
-          Live News
-        </h2>
-        <div className="grid gap-6 md:grid-cols-3">
-          {liveChannels.map((channel) => (
-            <div key={channel.id} className="relative group cursor-pointer">
-              {activeLive === channel.id ? (
-                <div className="aspect-video rounded overflow-hidden">
+      {/* 🔴 Live Channels */}
+      <section className="max-w-6xl mx-auto px-6 py-10">
+        <h2 className="text-2xl font-semibold mb-6 text-adinkra-highlight">Live News</h2>
+
+        {/* Mobile Scroll */}
+        <div className="md:hidden flex overflow-x-auto gap-4 pb-4">
+          {liveChannels.map((channel, idx) => (
+            <div key={idx} className="min-w-[280px]">
+              <div className="rounded-lg overflow-hidden mb-2 relative aspect-video">
+                {activeLive[idx] ? (
                   <iframe
                     src={channel.embedUrl}
                     className="w-full h-full border-none"
@@ -123,30 +109,63 @@ export default function AdinkraTV() {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
                   />
-                </div>
-              ) : (
-                <div
-                  className="aspect-video relative rounded overflow-hidden"
-                  onClick={() => setActiveLive(channel.id)}
-                >
-                  <img
-                    src={channel.thumbnail}
-                    alt={`${channel.name} Thumbnail`}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
-                    LIVE
+                ) : (
+                  <div
+                    className="w-full h-full bg-black cursor-pointer"
+                    onClick={() => setActiveLive({ ...activeLive, [idx]: true })}
+                  >
+                    <img
+                      src={channel.thumb}
+                      alt={channel.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
+                      LIVE
+                    </div>
                   </div>
-                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition" />
-                </div>
-              )}
-              <p className="text-center mt-2 text-sm font-medium">{channel.name}</p>
+                )}
+              </div>
+              <p className="text-center text-sm font-medium">{channel.name}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Grid */}
+        <div className="hidden md:grid grid-cols-3 gap-6">
+          {liveChannels.map((channel, idx) => (
+            <div key={idx}>
+              <div className="aspect-video rounded-lg overflow-hidden mb-2 relative">
+                {activeLive[idx] ? (
+                  <iframe
+                    src={channel.embedUrl}
+                    className="w-full h-full border-none"
+                    title={channel.name}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                ) : (
+                  <div
+                    className="w-full h-full bg-black cursor-pointer"
+                    onClick={() => setActiveLive({ ...activeLive, [idx]: true })}
+                  >
+                    <img
+                      src={channel.thumb}
+                      alt={channel.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
+                      LIVE
+                    </div>
+                  </div>
+                )}
+              </div>
+              <p className="text-center text-sm font-medium">{channel.name}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* 🌟 Featured Section */}
+      {/* 🌟 Featured */}
       {featured && (
         <section className="max-w-5xl mx-auto px-6 py-12">
           <h2 className="text-2xl font-semibold mb-4 text-adinkra-highlight">Featured</h2>
@@ -165,7 +184,7 @@ export default function AdinkraTV() {
         </section>
       )}
 
-      {/* 🎯 Category Filter */}
+      {/* 🎯 Filter & Videos */}
       <section className="max-w-6xl mx-auto px-6 py-6">
         <div className="flex flex-wrap justify-center gap-3 mb-8">
           {categories.map((cat) => (
@@ -183,18 +202,11 @@ export default function AdinkraTV() {
           ))}
         </div>
 
-        {/* 📺 Video Grid */}
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
           {filteredVideos
             .filter((video) => !video.fields.featured)
             .map((video) => {
-              const {
-                title,
-                description,
-                thumbnail,
-                category,
-                premium,
-              } = video.fields;
+              const { title, description, thumbnail, category, premium } = video.fields;
               const imageUrl = thumbnail?.fields?.file?.url;
               const excerpt = plainTextDescription(description).slice(0, 150);
 
@@ -231,7 +243,7 @@ export default function AdinkraTV() {
         </div>
       </section>
 
-    
+      
     </div>
   );
 }
