@@ -1,5 +1,4 @@
 // src/pages/AdinkraTV.jsx
-
 import { useEffect, useState } from "react";
 import { createClient } from "contentful";
 import Header from "../components/Header";
@@ -14,9 +13,9 @@ const client = createClient({ space: SPACE_ID, accessToken: ACCESS_TOKEN });
 const getEmbedUrl = (url) => {
   if (!url) return "";
   const watchMatch = url.match(/watch\?v=([a-zA-Z0-9_-]+)/);
-  if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}?autoplay=1`;
+  if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}`;
   const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
-  if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}?autoplay=1`;
+  if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`;
   return url;
 };
 
@@ -30,11 +29,7 @@ const plainTextDescription = (richText) => {
 export default function AdinkraTV() {
   const [videos, setVideos] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [activeStreams, setActiveStreams] = useState({
-    tvc: false,
-    africanews: false,
-    arise: false,
-  });
+  const [activeLive, setActiveLive] = useState(null); // for controlling which live stream is playing
 
   useEffect(() => {
     client
@@ -61,6 +56,27 @@ export default function AdinkraTV() {
         );
 
   const featured = videos.find((video) => video.fields.featured);
+
+  const liveChannels = [
+    {
+      name: "TVC News",
+      thumbnail: "/tvc-news-thumb.jpg",
+      embedUrl: "https://www.youtube.com/embed/b-Yzp0l8cAM?si=lGq1-hez6eAHhuEq",
+      id: "tvc",
+    },
+    {
+      name: "Africanews",
+      thumbnail: "/africanews-thumb.jpg",
+      embedUrl: "https://www.youtube.com/embed/NQjabLGdP5g?si=3yzGWlHyOENxTdRv",
+      id: "africanews",
+    },
+    {
+      name: "Arise News",
+      thumbnail: "/arise-news-thumb.jpg",
+      embedUrl: "https://www.youtube.com/embed/srJg6ZIPmvU?si=7StqTVvIN_CGVzCM",
+      id: "arise",
+    },
+  ];
 
   return (
     <div className="bg-adinkra-bg text-adinkra-gold min-h-screen">
@@ -90,69 +106,43 @@ export default function AdinkraTV() {
         </div>
       </section>
 
-      {/* 🔴 Live TV Channels with Thumbnails */}
-      <section className="max-w-6xl mx-auto px-6 py-10">
-        <h2 className="text-2xl font-semibold mb-6 text-adinkra-highlight">Live News</h2>
+      {/* 🔴 Now Playing - Live News */}
+      <section className="max-w-6xl mx-auto px-6 py-12">
+        <h2 className="text-xl font-bold mb-6 uppercase tracking-wide text-adinkra-highlight">
+          Now Playing — Live News
+        </h2>
         <div className="grid gap-6 md:grid-cols-3">
-          {/* TVC News */}
-          <div className="relative aspect-video group cursor-pointer" onClick={() => setActiveStreams(prev => ({ ...prev, tvc: true }))}>
-            {activeStreams.tvc ? (
-              <iframe
-                src="https://www.youtube.com/embed/b-Yzp0l8cAM?autoplay=1"
-                className="w-full h-full border-none"
-                title="TVC News Live"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            ) : (
-              <div className="relative w-full h-full">
-                <img src="/tvc-news-thumb.jpg" alt="TVC News" className="w-full h-full object-cover rounded" />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white font-bold text-xl">
-                  ▶ TVC News
+          {liveChannels.map((channel) => (
+            <div key={channel.id} className="relative group cursor-pointer">
+              {activeLive === channel.id ? (
+                <div className="aspect-video rounded overflow-hidden">
+                  <iframe
+                    src={channel.embedUrl}
+                    className="w-full h-full border-none"
+                    title={channel.name}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* Africanews */}
-          <div className="relative aspect-video group cursor-pointer" onClick={() => setActiveStreams(prev => ({ ...prev, africanews: true }))}>
-            {activeStreams.africanews ? (
-              <iframe
-                src="https://www.youtube.com/embed/NQjabLGdP5g?autoplay=1"
-                className="w-full h-full border-none"
-                title="Africanews Live"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            ) : (
-              <div className="relative w-full h-full">
-                <img src="/africanews-thumb.jpg" alt="Africanews" className="w-full h-full object-cover rounded" />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white font-bold text-xl">
-                  ▶ Africanews
+              ) : (
+                <div
+                  className="aspect-video relative rounded overflow-hidden"
+                  onClick={() => setActiveLive(channel.id)}
+                >
+                  <img
+                    src={channel.thumbnail}
+                    alt={`${channel.name} Thumbnail`}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
+                    LIVE
+                  </div>
+                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition" />
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* Arise News */}
-          <div className="relative aspect-video group cursor-pointer" onClick={() => setActiveStreams(prev => ({ ...prev, arise: true }))}>
-            {activeStreams.arise ? (
-              <iframe
-                src="https://www.youtube.com/embed/srJg6ZIPmvU?autoplay=1"
-                className="w-full h-full border-none"
-                title="Arise News Live"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            ) : (
-              <div className="relative w-full h-full">
-                <img src="/arise-news-thumb.jpg" alt="Arise News" className="w-full h-full object-cover rounded" />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white font-bold text-xl">
-                  ▶ Arise News
-                </div>
-              </div>
-            )}
-          </div>
+              )}
+              <p className="text-center mt-2 text-sm font-medium">{channel.name}</p>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -241,7 +231,7 @@ export default function AdinkraTV() {
         </div>
       </section>
 
-      
+    
     </div>
   );
 }
