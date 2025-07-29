@@ -39,10 +39,6 @@ export default function NewsArticle() {
         updateMetaTags(entry);
       })
       .catch(console.error);
-
-    return () => {
-      // Optional cleanup: remove custom meta tags if needed
-    };
   }, [id]);
 
   const fetchLikes = async (slug) => {
@@ -136,6 +132,7 @@ export default function NewsArticle() {
     category,
     mediaAssets,
     date,
+    affiliateLinks,
   } = article.fields;
 
   const coverUrl = coverImage?.fields?.file?.url;
@@ -202,7 +199,19 @@ export default function NewsArticle() {
           {documentToReactComponents(BodyContent, options)}
         </div>
 
-        {/* Media Section */}
+        {/* ✅ Affiliate Section */}
+        {affiliateLinks && (
+          <div className="mt-12 bg-adinkra-card p-6 rounded-lg border border-adinkra-highlight">
+            <h3 className="text-xl font-semibold mb-4 text-adinkra-highlight">
+              Sponsored Products
+            </h3>
+            <div className="prose prose-invert prose-lg text-adinkra-gold max-w-none">
+              {documentToReactComponents(affiliateLinks, options)}
+            </div>
+          </div>
+        )}
+
+        {/* 🎞️ Media Section */}
         {mediaAssets?.length > 0 && (
           <div className="mt-12">
             <h3 className="text-2xl font-semibold mb-4 text-adinkra-highlight">

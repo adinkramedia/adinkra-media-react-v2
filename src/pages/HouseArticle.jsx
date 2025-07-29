@@ -141,7 +141,7 @@ export default function HouseArticle() {
 
   if (!article) return <div className="text-center py-20">Loading...</div>;
 
-  const { title, bodyContent, coverImage, publishedDate } = article.fields;
+  const { title, bodyContent, coverImage, publishedDate, affiliateLinks } = article.fields;
   const coverUrl = coverImage?.fields?.file?.url;
   const fullUrl = `https://adinkramedia.com/house-article/${article.sys.id}`;
   const shareText = `${title} - ${new Date(publishedDate).toLocaleDateString()}`;
@@ -157,7 +157,6 @@ export default function HouseArticle() {
     <div className="bg-adinkra-bg text-adinkra-gold min-h-screen">
       <Header />
       <section className="max-w-3xl mx-auto px-4 py-20">
-        {/* Cover Image */}
         {coverUrl && (
           <img
             src={`https:${coverUrl}`}
@@ -166,15 +165,12 @@ export default function HouseArticle() {
           />
         )}
 
-        {/* Title */}
         <h1 className="text-4xl font-bold mb-4">{title}</h1>
 
-        {/* Date */}
         <p className="text-sm text-adinkra-gold/70 mb-4">
           {new Date(publishedDate).toLocaleDateString()}
         </p>
 
-        {/* Like Button */}
         <div className="flex items-center gap-4 mb-8">
           <button
             onClick={handleLike}
@@ -185,7 +181,6 @@ export default function HouseArticle() {
           </button>
         </div>
 
-        {/* Share Buttons */}
         <div className="flex gap-3 flex-wrap mb-10">
           {Object.entries(shareLinks).map(([platform, url]) => (
             <a
@@ -200,12 +195,23 @@ export default function HouseArticle() {
           ))}
         </div>
 
-        {/* Article Content */}
         <div className="prose prose-invert prose-lg text-adinkra-gold max-w-none">
           {bodyContent && documentToReactComponents(bodyContent, options)}
         </div>
+
+        {/* Affiliate Links */}
+        {affiliateLinks && (
+          <div className="mt-16 pt-6 border-t border-adinkra-highlight/30">
+            <h3 className="text-2xl font-semibold mb-4 text-adinkra-highlight">
+              Featured Products
+            </h3>
+            <div className="prose prose-invert prose-lg text-adinkra-gold max-w-none">
+              {documentToReactComponents(affiliateLinks, options)}
+            </div>
+          </div>
+        )}
       </section>
-    
+      
     </div>
   );
 }

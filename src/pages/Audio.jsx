@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "contentful";
+import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
+import { BLOCKS, MARKS } from "@contentful/rich-text-types";
 import { supabase } from "../lib/supabase";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -29,6 +31,25 @@ const licensingFaqs = [
       "You can't resell or redistribute the raw audio as-is (e.g., upload to stock platforms, remix and sell, etc.).",
   },
 ];
+
+const richTextOptions = {
+  renderMark: {
+    [MARKS.BOLD]: (text) => <strong>{text}</strong>,
+    [MARKS.ITALIC]: (text) => <em>{text}</em>,
+  },
+  renderNode: {
+    [BLOCKS.PARAGRAPH]: (node, children) => (
+      <p className="mb-4 leading-relaxed">{children}</p>
+    ),
+    [BLOCKS.HEADING_3]: (node, children) => (
+      <h3 className="text-lg font-semibold mt-4 mb-2">{children}</h3>
+    ),
+    [BLOCKS.UL_LIST]: (node, children) => (
+      <ul className="list-disc list-inside mb-4">{children}</ul>
+    ),
+    [BLOCKS.LIST_ITEM]: (node, children) => <li>{children}</li>,
+  },
+};
 
 export default function Audio() {
   const [tracks, setTracks] = useState([]);
@@ -94,8 +115,6 @@ export default function Audio() {
 
       if (!updateError) {
         setLikes((prev) => ({ ...prev, [slug]: existing.count + 1 }));
-      } else {
-        console.error("Update error:", updateError);
       }
     } else {
       const { error: insertError } = await supabase
@@ -104,8 +123,6 @@ export default function Audio() {
 
       if (!insertError) {
         setLikes((prev) => ({ ...prev, [slug]: 1 }));
-      } else {
-        console.error("Insert error:", insertError);
       }
     }
 
@@ -113,7 +130,6 @@ export default function Audio() {
   };
 
   const allCategories = ["All", ...new Set(tracks.map((t) => t.fields.category || "Audio"))];
-
   const filteredTracks = tracks.filter((item) => {
     const cat = item.fields.category || "Audio";
     return selectedCategory === "All" || cat === selectedCategory;
@@ -196,6 +212,7 @@ export default function Audio() {
             const preview = f.previewAudio?.fields?.file?.url;
             const download = f.fullDownloadFile?.fields?.file?.url;
             const gumroadLink = f.gumroadLink;
+            const affiliateLinks = f.affiliateLinks;
 
             return (
               <div
@@ -206,9 +223,7 @@ export default function Audio() {
                   className="w-full h-48 bg-cover bg-center rounded-md mb-4"
                   style={{ backgroundImage: `url(https:${cover})` }}
                 ></div>
-                <h3 className="text-xl font-semibold mb-1 text-adinkra-gold">
-                  {title}
-                </h3>
+                <h3 className="text-xl font-semibold mb-1 text-adinkra-gold">{title}</h3>
                 <p className="text-sm mb-1 text-adinkra-gold/70">{category}</p>
                 <p className="text-sm font-bold mb-3 text-adinkra-gold">{price}</p>
 
@@ -241,6 +256,13 @@ export default function Audio() {
                     </button>
                   ) : null}
                 </div>
+
+                {/* Affiliate Links */}
+                {affiliateLinks && (
+                  <div className="mt-6 text-sm text-adinkra-gold/90 bg-adinkra-highlight/10 border-t border-adinkra-highlight pt-4">
+                    {documentToReactComponents(affiliateLinks, richTextOptions)}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -283,7 +305,7 @@ export default function Audio() {
       </section>
 
       <AccordionFaq title="Adinkra Audio Licensing FAQ" faqs={licensingFaqs} />
-      
+    
     </div>
   );
 }

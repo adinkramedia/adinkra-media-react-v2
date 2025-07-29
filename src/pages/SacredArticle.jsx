@@ -156,7 +156,7 @@ export default function SacredArticle() {
     body: bodyContent,
     wisdomTakeaway,
     reflections,
-    slug,
+    affiliateLinks,
   } = article.fields;
 
   const coverUrl = coverImage?.fields?.file?.url;
@@ -174,7 +174,6 @@ export default function SacredArticle() {
     <div className="bg-adinkra-bg text-adinkra-gold min-h-screen">
       <Header />
       <section className="max-w-3xl mx-auto px-4 py-20">
-        {/* Cover Image */}
         {coverUrl && (
           <img
             src={`https:${coverUrl}`}
@@ -183,21 +182,17 @@ export default function SacredArticle() {
           />
         )}
 
-        {/* Title */}
         <h1 className="text-4xl font-bold mb-2">{Title}</h1>
 
-        {/* Author + Date */}
         <p className="text-sm text-adinkra-gold/70 mb-4">
           {author && <>By {author} | </>}
           {new Date(publishedDate).toLocaleDateString()}
         </p>
 
-        {/* Excerpt */}
         {excerpt && (
           <p className="italic text-adinkra-gold/80 mb-8">{excerpt}</p>
         )}
 
-        {/* Like Button */}
         <div className="flex items-center gap-4 mb-8">
           <button
             onClick={handleLike}
@@ -208,7 +203,6 @@ export default function SacredArticle() {
           </button>
         </div>
 
-        {/* Share Buttons */}
         <div className="flex gap-3 flex-wrap mb-10">
           {Object.entries(shareLinks).map(([platform, url]) => (
             <a
@@ -223,14 +217,12 @@ export default function SacredArticle() {
           ))}
         </div>
 
-        {/* Body Content */}
         {bodyContent && (
           <div className="prose prose-invert prose-lg text-adinkra-gold max-w-none mb-12">
             {documentToReactComponents(bodyContent, options)}
           </div>
         )}
 
-        {/* Wisdom Takeaway */}
         {wisdomTakeaway && (
           <div className="mt-12 p-6 bg-adinkra-highlight bg-opacity-20 border-l-4 border-adinkra-highlight rounded-lg">
             <h3 className="text-2xl font-semibold mb-4 text-adinkra-gold">
@@ -240,7 +232,6 @@ export default function SacredArticle() {
           </div>
         )}
 
-        {/* Reflections */}
         {reflections && (
           <div className="mt-16">
             <h3 className="text-2xl font-semibold mb-4 text-adinkra-gold">
@@ -251,8 +242,20 @@ export default function SacredArticle() {
             </div>
           </div>
         )}
+
+        {/* Affiliate Links */}
+        {affiliateLinks && (
+          <div className="mt-16 pt-6 border-t border-adinkra-highlight/30">
+            <h3 className="text-2xl font-semibold mb-4 text-adinkra-highlight">
+              Featured Products
+            </h3>
+            <div className="prose prose-invert prose-lg text-adinkra-gold max-w-none">
+              {documentToReactComponents(affiliateLinks, options)}
+            </div>
+          </div>
+        )}
       </section>
-     
+    
     </div>
   );
 }
