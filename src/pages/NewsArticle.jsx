@@ -7,11 +7,13 @@ import { supabase } from "../lib/supabase";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
+// Contentful Client
 const client = createClient({
   space: "8e41pkw4is56",
   accessToken: "qM0FzdQIPkX6VF4rt8wXzzLiPdgbjmmNGzHarCK0l8I",
 });
 
+// Rich Text Renderer Options
 const options = {
   renderMark: {
     [MARKS.BOLD]: (text) => <strong>{text}</strong>,
@@ -21,6 +23,52 @@ const options = {
     [BLOCKS.PARAGRAPH]: (node, children) => (
       <p className="mb-5 leading-relaxed">{children}</p>
     ),
+    [BLOCKS.EMBEDDED_ASSET]: (node) => {
+      const { file, title } = node.data.target.fields;
+      const url = `https:${file.url}`;
+      const contentType = file.contentType;
+
+      if (contentType.startsWith("image")) {
+        return (
+          <img
+            src={url}
+            alt={title || "Affiliate image"}
+            className="w-full rounded-md my-4"
+          />
+        );
+      }
+
+      if (contentType.startsWith("video")) {
+        return (
+          <video
+            src={url}
+            controls
+            className="w-full rounded-md my-4"
+          />
+        );
+      }
+
+      if (contentType.startsWith("audio")) {
+        return (
+          <audio
+            src={url}
+            controls
+            className="w-full my-4"
+          />
+        );
+      }
+
+      return (
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-adinkra-highlight underline"
+        >
+          {title || file.fileName}
+        </a>
+      );
+    },
   },
 };
 
@@ -60,7 +108,6 @@ export default function NewsArticle() {
     const image = entry.fields.coverImage?.fields?.file?.url
       ? `https:${entry.fields.coverImage.fields.file.url}`
       : "";
-
     const fullUrl = `https://adinkramedia.com/news/${entry.sys.id}`;
 
     const setMeta = (property, content) => {
@@ -254,7 +301,6 @@ export default function NewsArticle() {
           </div>
         )}
       </section>
-     
     </div>
   );
 }

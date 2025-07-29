@@ -7,13 +7,11 @@ import { supabase } from "../lib/supabase";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
-// Contentful client
 const client = createClient({
   space: "8e41pkw4is56",
   accessToken: "qM0FzdQIPkX6VF4rt8wXzzLiPdgbjmmNGzHarCK0l8I",
 });
 
-// Rich text rendering options
 const options = {
   renderMark: {
     [MARKS.BOLD]: (text) => <strong>{text}</strong>,
@@ -46,6 +44,52 @@ const options = {
         {children}
       </blockquote>
     ),
+    [BLOCKS.EMBEDDED_ASSET]: (node) => {
+      const { file, title } = node.data.target.fields;
+      const mimeType = file.contentType;
+      const url = file.url;
+
+      if (mimeType.startsWith("image/")) {
+        return (
+          <img
+            src={`https:${url}`}
+            alt={title || "Embedded Image"}
+            className="my-6 rounded-lg w-full max-w-xl mx-auto"
+          />
+        );
+      }
+
+      if (mimeType.startsWith("video/")) {
+        return (
+          <video
+            src={`https:${url}`}
+            controls
+            className="my-6 rounded-lg w-full max-w-xl mx-auto"
+          />
+        );
+      }
+
+      if (mimeType.startsWith("audio/")) {
+        return (
+          <audio
+            src={`https:${url}`}
+            controls
+            className="my-6 w-full"
+          />
+        );
+      }
+
+      return (
+        <a
+          href={`https:${url}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-adinkra-highlight underline"
+        >
+          Download File ({file.fileName})
+        </a>
+      );
+    },
   },
 };
 
@@ -243,7 +287,6 @@ export default function SacredArticle() {
           </div>
         )}
 
-        {/* Affiliate Links */}
         {affiliateLinks && (
           <div className="mt-16 pt-6 border-t border-adinkra-highlight/30">
             <h3 className="text-2xl font-semibold mb-4 text-adinkra-highlight">
@@ -255,7 +298,7 @@ export default function SacredArticle() {
           </div>
         )}
       </section>
-    
+     
     </div>
   );
 }

@@ -40,6 +40,52 @@ const options = {
         {children}
       </blockquote>
     ),
+    [BLOCKS.EMBEDDED_ASSET]: (node) => {
+      const { file, title } = node.data.target.fields;
+      const mimeType = file.contentType;
+      const url = file.url;
+
+      if (mimeType.startsWith("image/")) {
+        return (
+          <img
+            src={`https:${url}`}
+            alt={title || "Embedded Image"}
+            className="my-6 rounded-lg w-full max-w-xl mx-auto"
+          />
+        );
+      }
+
+      if (mimeType.startsWith("video/")) {
+        return (
+          <video
+            src={`https:${url}`}
+            controls
+            className="my-6 rounded-lg w-full max-w-xl mx-auto"
+          />
+        );
+      }
+
+      if (mimeType.startsWith("audio/")) {
+        return (
+          <audio
+            src={`https:${url}`}
+            controls
+            className="my-6 w-full"
+          />
+        );
+      }
+
+      return (
+        <a
+          href={`https:${url}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-adinkra-highlight underline"
+        >
+          Download File ({file.fileName})
+        </a>
+      );
+    },
   },
 };
 
@@ -211,7 +257,7 @@ export default function HouseArticle() {
           </div>
         )}
       </section>
-      
+   
     </div>
   );
 }
