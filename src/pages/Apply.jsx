@@ -44,13 +44,16 @@ export default function Apply() {
           <p className="text-center font-semibold text-adinkra-highlight">
             Fill in the form below to apply. Once approved, you’ll receive access to your dashboard and begin your contributor journey.
           </p>
+
+          <p className="text-center text-sm italic text-adinkra-gold/80">
+            Please upload your CV to Google Drive or Dropbox and paste the public link in the form below.
+          </p>
         </div>
 
         {/* Formspree Form */}
         <form
           action="https://formspree.io/f/mqaleagw"
           method="POST"
-          encType="multipart/form-data"
           className="space-y-6"
         >
           <div>
@@ -84,12 +87,13 @@ export default function Apply() {
           </div>
 
           <div>
-            <label className="block mb-1 font-medium">Upload Your CV/Resume</label>
+            <label className="block mb-1 font-medium">Link to Your CV (Google Drive or Dropbox)</label>
             <input
-              type="file"
-              name="cv"
-              accept=".pdf,.doc,.docx"
-              className="w-full px-4 py-2 bg-adinkra-card border border-adinkra-highlight rounded text-adinkra-gold file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-adinkra-highlight file:text-adinkra-bg file:font-semibold hover:file:bg-adinkra-highlight/90"
+              type="url"
+              name="cvLink"
+              placeholder="https://drive.google.com/..."
+              required
+              className="w-full px-4 py-2 bg-adinkra-card border border-adinkra-highlight rounded"
             />
           </div>
 
