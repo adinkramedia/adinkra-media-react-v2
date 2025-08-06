@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createClient } from "contentful";
 import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
 import { BLOCKS, MARKS } from "@contentful/rich-text-types";
@@ -56,16 +56,25 @@ export default function Audio() {
   const [likes, setLikes] = useState({});
   const [loadingLikes, setLoadingLikes] = useState({});
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const location = useLocation();
   const navigate = useNavigate();
   const query = new URLSearchParams(location.search);
   const initialPage = parseInt(query.get("page")) || 1;
-  const [currentPage, setCurrentPage] = useState(initialPage);
 
   const itemsPerPage = 6;
 
+  // For simple audio preview playing
+  const audioRef = useRef(null);
+  const [playingUrl, setPlayingUrl] = useState(null);
+
   useEffect(() => {
+    setCurrentPage(initialPage);
+  }, [initialPage]);
+
+  useEffect(() => {
+    // Fetch tracks only (no albums)
     client
       .getEntries({ content_type: "audioTrack", order: "-sys.createdAt" })
       .then((res) => {
@@ -142,6 +151,7 @@ export default function Audio() {
   );
 
   const handlePageChange = (page) => {
+    if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
     navigate(`?page=${page}`);
   };
@@ -152,8 +162,30 @@ export default function Audio() {
     navigate(`?page=1`);
   };
 
+  // Play/pause simple preview audio
+  const togglePreview = (url) => {
+    if (playingUrl === url) {
+      audioRef.current.pause();
+      setPlayingUrl(null);
+    } else {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      audioRef.current = new Audio(url);
+      audioRef.current.play();
+      setPlayingUrl(url);
+
+      audioRef.current.onended = () => {
+        setPlayingUrl(null);
+      };
+      audioRef.current.onerror = () => {
+        setPlayingUrl(null);
+      };
+    }
+  };
+
   return (
-    <div className="bg-adinkra-bg text-adinkra-gold min-h-screen">
+    <div className="bg-adinkra-bg text-adinkra-gold min-h-screen flex flex-col">
       <Header />
 
       {/* Hero */}
@@ -179,7 +211,7 @@ export default function Audio() {
       </section>
 
       {/* Filters */}
-      <section className="max-w-6xl mx-auto px-6 pt-16">
+      <section className="max-w-6xl mx-auto px-6 pt-20 flex-grow">
         <div className="flex flex-wrap justify-center gap-3 mb-10">
           {allCategories.map((cat) => (
             <button
@@ -202,10 +234,11 @@ export default function Audio() {
             const f = item.fields;
             const slug = f.slug || item.sys.id;
             const title = f.trackTitle;
+            const priceRaw = f.priceEuro ?? f.price ?? null;
             const price = f.freeDownload
               ? "Free Download"
-              : f.priceEuro
-              ? `€${f.priceEuro.toFixed(2)}`
+              : priceRaw !== null && !isNaN(priceRaw)
+              ? `€${parseFloat(priceRaw).toFixed(2)}`
               : "€--";
             const category = f.category || "Audio";
             const cover = f.coverImage?.fields?.file?.url;
@@ -217,12 +250,12 @@ export default function Audio() {
             return (
               <div
                 key={item.sys.id}
-                className="bg-adinkra-card border border-adinkra-highlight rounded-xl shadow-md p-4"
+                className="bg-adinkra-card border border-adinkra-highlight rounded-xl shadow-md p-4 flex flex-col"
               >
                 <div
                   className="w-full h-48 bg-cover bg-center rounded-md mb-4"
                   style={{ backgroundImage: `url(https:${cover})` }}
-                ></div>
+                />
                 <h3 className="text-xl font-semibold mb-1 text-adinkra-gold">{title}</h3>
                 <p className="text-sm mb-1 text-adinkra-gold/70">{category}</p>
                 <p className="text-sm font-bold mb-3 text-adinkra-gold">{price}</p>
@@ -305,6 +338,7 @@ export default function Audio() {
       </section>
 
       <AccordionFaq title="Adinkra Audio Licensing FAQ" faqs={licensingFaqs} />
+
     
     </div>
   );
