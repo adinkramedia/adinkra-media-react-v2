@@ -5,14 +5,11 @@ import dotenv from "dotenv";
 import { createClient } from "contentful";
 import RSS from "rss";
 
-// Load environment variables
 dotenv.config();
 
-// Fix __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initialize Contentful client
 const client = createClient({
   space: process.env.VITE_CONTENTFUL_SPACE_ID,
   accessToken: process.env.VITE_CONTENTFUL_DELIVERY_TOKEN,
@@ -40,22 +37,18 @@ async function generateRSS() {
     }
 
     entries.items.forEach((item) => {
-      const { fields } = item;
+      console.log("Fields:", item.fields); // ✅ DEBUG: Inspect field names
 
-      const title = fields.title || "Untitled Article";
-      const slug = fields.slug || "";
-      const summary = fields.summaryExcerpt || "Visit Adinkra Media for the full story.";
-      const date = fields.date || new Date().toISOString();
-
-      // Optional: get author name if available
-      const author = fields.author?.fields?.name || "Adinkra Contributor";
+      const title = item.fields?.title ?? "Untitled Article"; // Change this if needed
+      const slug = item.fields?.slug ?? "";
+      const excerpt = item.fields?.summaryExcerpt ?? "Visit Adinkra Media for the full story.";
+      const publishedDate = item.fields?.date ?? new Date().toISOString();
 
       feed.item({
-        title: title.trim(),
-        description: summary.trim(),
-        url: `https://www.adinkramedia.com/news/${slug.trim()}`,
-        date: new Date(date).toISOString(),
-        author,
+        title,
+        description: excerpt,
+        url: `https://www.adinkramedia.com/news/${slug}`,
+        date: new Date(publishedDate).toISOString(),
       });
     });
 
@@ -63,7 +56,6 @@ async function generateRSS() {
     const outputPath = path.resolve(__dirname, "../public/rss.xml");
 
     fs.writeFileSync(outputPath, xml, "utf8");
-
     console.log(`✅ RSS feed generated with ${entries.items.length} items at public/rss.xml`);
   } catch (error) {
     console.error("❌ Failed to generate RSS feed:", error.message);
