@@ -1,5 +1,3 @@
-// scripts/generate-rss.js
-
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -44,16 +42,20 @@ async function generateRSS() {
     entries.items.forEach((item) => {
       const { fields } = item;
 
-      const title = fields.title?.trim() || "Untitled Article";
-      const slug = fields.slug?.trim() || "";
-      const summary = fields.summaryExcerpt?.trim() || "Visit Adinkra Media for the full story.";
-      const publishedDate = fields.date || new Date().toISOString();
+      const title = fields.title || "Untitled Article";
+      const slug = fields.slug || "";
+      const summary = fields.summaryExcerpt || "Visit Adinkra Media for the full story.";
+      const date = fields.date || new Date().toISOString();
+
+      // Optional: get author name if available
+      const author = fields.author?.fields?.name || "Adinkra Contributor";
 
       feed.item({
-        title,
-        description: summary,
-        url: `https://www.adinkramedia.com/news/${slug}`,
-        date: new Date(publishedDate).toISOString(),
+        title: title.trim(),
+        description: summary.trim(),
+        url: `https://www.adinkramedia.com/news/${slug.trim()}`,
+        date: new Date(date).toISOString(),
+        author,
       });
     });
 
