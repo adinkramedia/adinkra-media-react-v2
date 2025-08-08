@@ -44,19 +44,19 @@ async function generateRSS() {
     entries.items.forEach((item) => {
       const fields = item.fields;
 
-      // Adjust these keys according to your actual Contentful model API IDs
-      const title = fields.entryTitle?.trim() || fields.title?.trim() || "Untitled Article";
+      const title = fields.entryTitle?.trim() || "Untitled Article";
       const slug = fields.slug?.trim() || "";
       const excerpt = fields.summaryExcerpt?.trim() || "Visit Adinkra Media for the full story.";
-      const publishedDate = fields.date || new Date().toISOString();
+      const publishedDate = fields.date ? new Date(fields.date).toUTCString() : new Date().toUTCString();
+      const authorName = fields.author?.fields?.name || "Adinkra Media";
 
       feed.item({
         title,
         description: excerpt,
         url: `https://www.adinkramedia.com/news/${slug}`,
         guid: `https://www.adinkramedia.com/news/${slug}`,
-        date: new Date(publishedDate).toUTCString(),
-        author: fields.author?.fields?.name || "Adinkra Media", // If author is a reference, get their name field
+        date: publishedDate,
+        author: authorName,
       });
     });
 
