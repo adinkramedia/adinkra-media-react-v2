@@ -8,7 +8,6 @@ import Home from "./pages/Home";
 import Audio from "./pages/Audio";
 import HouseOfAusar from "./pages/HouseOfAusar";
 import HouseArticle from "./pages/HouseArticle";
-import SacredArticle from "./pages/SacredArticle";
 import News from "./pages/News";
 import NewsArticle from "./pages/NewsArticle";
 import Apply from "./pages/Apply";
@@ -46,9 +45,6 @@ export default function App() {
           {/* Article Pages (standard + clean share URLs) */}
           <Route path="/house-article/:id" element={<HouseArticle />} />
           <Route path="/house/:id" element={<HouseArticle />} />
-
-          <Route path="/sacred-article/:id" element={<SacredArticle />} />
-          <Route path="/sacred/:id" element={<SacredArticle />} />
 
           <Route path="/news-article/:id" element={<NewsArticle />} />
           <Route path="/news/:id" element={<NewsArticle />} />

@@ -88,46 +88,7 @@ export default function HouseOfAusar() {
           })}
         </div>
       </section>
-
-      {/* Sacred & Sovereign Blog Grid */}
-      <section className="max-w-6xl mx-auto px-6 pb-20">
-  <h2 className="text-3xl font-bold mb-8 text-adinkra-highlight">Sacred & Sovereign</h2>
-  <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-    {sacredPosts.map((post) => {
-      const { Title, title, author, excerpt, coverImage, publishedDate } = post.fields;
-      const displayTitle = Title || title;
-      const cover = coverImage?.fields?.file?.url;
-
-      return (
-        <div
-          key={post.sys.id}
-          className="bg-adinkra-card rounded-xl border border-adinkra-highlight p-4 shadow-md"
-        >
-          {cover && (
-            <div
-              className="h-48 bg-cover bg-center rounded mb-4"
-              style={{ backgroundImage: `url(https:${cover})` }}
-            />
-          )}
-          <h3 className="text-xl font-semibold mb-1 text-adinkra-gold">{displayTitle}</h3>
-          <p className="text-sm mb-1 text-adinkra-gold/60 italic">{author}</p>
-          <p className="text-sm mb-2 text-adinkra-gold/70">
-            {new Date(publishedDate).toLocaleDateString()}
-          </p>
-          <p className="text-sm mb-4 text-adinkra-gold/90">{excerpt}</p>
-          <Link
-            to={`/sacred-article/${post.sys.id}`}
-            className="text-adinkra-highlight font-semibold hover:underline"
-          >
-            Read More →
-          </Link>
-        </div>
-      );
-    })}
-  </div>
-</section>
-
-      
+ 
     </div>
   );
 }

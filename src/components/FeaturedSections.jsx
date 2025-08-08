@@ -29,13 +29,12 @@ const endpoints = [
     dateField: "date",
   },
   {
-    id: "sacredAndSovereign",
-    title: "Sacred & Sovereign",
-    path: "/house-of-ausar",
-    titleField: "Title",
-    summaryField: "excerpt",
-    imageField: "coverImage",
-    dateField: "publishedDate",
+   id: "houseOfAusar",
+   title: "House of Ausar",
+   path: "/house-of-ausar", // Keep the path if the route/component already exists
+   titleField: "title",
+   imageField: "coverImage",
+   dateField: "publishedDate",
   },
   {
     id: "audioTrack",
