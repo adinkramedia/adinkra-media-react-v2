@@ -24,6 +24,11 @@ async function generateRSS() {
       feed_url: "https://www.adinkramedia.com/rss.xml",
       language: "en",
       pubDate: new Date().toUTCString(),
+      generator: "Adinkra Media RSS Generator",
+      ttl: 60,
+      custom_namespaces: {
+        dc: "http://purl.org/dc/elements/1.1/",
+      },
     });
 
     const entries = await client.getEntries({
@@ -37,25 +42,28 @@ async function generateRSS() {
     }
 
     entries.items.forEach((item) => {
-      console.log("Fields:", item.fields); // ✅ DEBUG: Inspect field names
+      const fields = item.fields;
 
-      const title = item.fields?.title ?? "Untitled Article"; // Change this if needed
-      const slug = item.fields?.slug ?? "";
-      const excerpt = item.fields?.summaryExcerpt ?? "Visit Adinkra Media for the full story.";
-      const publishedDate = item.fields?.date ?? new Date().toISOString();
+      // Adjust these keys according to your actual Contentful model API IDs
+      const title = fields.entryTitle?.trim() || fields.title?.trim() || "Untitled Article";
+      const slug = fields.slug?.trim() || "";
+      const excerpt = fields.summaryExcerpt?.trim() || "Visit Adinkra Media for the full story.";
+      const publishedDate = fields.date || new Date().toISOString();
 
       feed.item({
         title,
         description: excerpt,
         url: `https://www.adinkramedia.com/news/${slug}`,
-        date: new Date(publishedDate).toISOString(),
+        guid: `https://www.adinkramedia.com/news/${slug}`,
+        date: new Date(publishedDate).toUTCString(),
+        author: fields.author?.fields?.name || "Adinkra Media", // If author is a reference, get their name field
       });
     });
 
     const xml = feed.xml({ indent: true });
     const outputPath = path.resolve(__dirname, "../public/rss.xml");
-
     fs.writeFileSync(outputPath, xml, "utf8");
+
     console.log(`✅ RSS feed generated with ${entries.items.length} items at public/rss.xml`);
   } catch (error) {
     console.error("❌ Failed to generate RSS feed:", error.message);
