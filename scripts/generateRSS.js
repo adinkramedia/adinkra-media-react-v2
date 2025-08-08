@@ -32,8 +32,8 @@ async function generateRSS() {
     });
 
     const entries = await client.getEntries({
-      content_type: "africanTrendingNews", // ✅ fixed content type ID
-      order: "-fields.date", // ✅ fixed to match 'date'
+      content_type: "africanTrendingNews",
+      order: "-fields.date",
       limit: 20,
     });
 
@@ -42,14 +42,16 @@ async function generateRSS() {
     }
 
     entries.items.forEach((item) => {
-      const title = item.fields?.title ?? "Untitled Article";
-      const slug = item.fields?.slug ?? "";
-      const excerpt = item.fields?.summaryExcerpt ?? "Visit Adinkra Media for the full story.";
-      const publishedDate = item.fields?.date ?? new Date().toISOString();
+      const { fields } = item;
+
+      const title = fields.title?.trim() || "Untitled Article";
+      const slug = fields.slug?.trim() || "";
+      const summary = fields.summaryExcerpt?.trim() || "Visit Adinkra Media for the full story.";
+      const publishedDate = fields.date || new Date().toISOString();
 
       feed.item({
         title,
-        description: excerpt,
+        description: summary,
         url: `https://www.adinkramedia.com/news/${slug}`,
         date: new Date(publishedDate).toISOString(),
       });
