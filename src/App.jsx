@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import AnalyticsTracker from "./components/AnalyticsTracker";
 
 // Pages
 import Home from "./pages/Home";
@@ -24,6 +25,7 @@ import ShareDashboard from "./pages/ShareDashboard";
 export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-adinkra-bg text-adinkra-gold">
+      <AnalyticsTracker />
       <Header />
       <main className="flex-grow pt-20">
         <Routes>
