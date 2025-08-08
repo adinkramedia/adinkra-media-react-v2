@@ -300,7 +300,28 @@ export default function NewsArticle() {
             </div>
           </div>
         )}
+
+        {/* 💰 Tip Jar Section */}
+        <div className="mt-16 bg-adinkra-card p-8 rounded-lg text-center border border-adinkra-highlight shadow-lg">
+          <h3 className="text-2xl font-bold text-adinkra-highlight mb-4">
+            Support Our Journalism
+          </h3>
+          <p className="text-adinkra-gold/80 mb-6 max-w-2xl mx-auto">
+            Fuel the Future of African Journalism.
+Support Adinkra Media — every tip helps us stay independent and amplify young African voices.
+          </p>
+          <a
+            href="https://adinkraaudio.gumroad.com/coffee"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block bg-adinkra-highlight text-black font-semibold py-3 px-6 rounded-full hover:bg-yellow-400 transition"
+          >
+            ☕ Tip Us on Gumroad
+          </a>
+        </div>
+
       </section>
+     
     </div>
   );
 }

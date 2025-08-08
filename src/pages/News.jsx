@@ -1,3 +1,4 @@
+// ...imports remain the same
 import { useEffect, useState } from "react";
 import { createClient } from "contentful";
 import Header from "../components/Header";
@@ -30,7 +31,6 @@ export default function News() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Extract ?page from URL
   const query = new URLSearchParams(location.search);
   const initialPage = parseInt(query.get("page")) || 1;
   const [currentPage, setCurrentPage] = useState(initialPage);
@@ -148,7 +148,7 @@ export default function News() {
           })}
         </div>
 
-        {/* Pagination Buttons */}
+        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-center items-center flex-wrap gap-3 mt-10">
             <button
@@ -158,8 +158,6 @@ export default function News() {
             >
               ← Previous
             </button>
-
-            {/* Numbered buttons */}
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
               <button
                 key={pageNum}
@@ -173,7 +171,6 @@ export default function News() {
                 {pageNum}
               </button>
             ))}
-
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
@@ -208,7 +205,23 @@ export default function News() {
         </div>
       </section>
 
-      
+      {/* ✅ RSS Feed Badge */}
+      <section className="text-center my-12">
+        <a
+          href="http://validator.w3.org/feed/check.cgi?url=https%3A//www.adinkramedia.com/rss.xml"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            src="/valid-rss-rogers.png"
+            alt="[Valid RSS]"
+            title="Validate my RSS feed"
+            className="mx-auto w-32"
+          />
+        </a>
+      </section>
+
+     
     </div>
   );
 }
