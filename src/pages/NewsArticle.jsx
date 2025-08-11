@@ -24,37 +24,36 @@ const options = {
       <p className="mb-5 leading-relaxed">{children}</p>
     ),
     [BLOCKS.EMBEDDED_ASSET]: (node) => {
-      const { file, title } = node.data.target.fields;
+      const { file, title, description } = node.data.target.fields;
       const url = `https:${file.url}`;
       const contentType = file.contentType;
 
       if (contentType.startsWith("image")) {
         return (
-          <img
-            src={url}
-            alt={title || "Affiliate image"}
-            className="w-full rounded-md my-4"
-          />
+          <figure className="my-4">
+            <img
+              src={url}
+              alt={title || "Affiliate image"}
+              className="w-full rounded-md"
+            />
+            {description && (
+              <figcaption className="mt-2 text-sm text-gray-500 italic">
+                {description}
+              </figcaption>
+            )}
+          </figure>
         );
       }
 
       if (contentType.startsWith("video")) {
         return (
-          <video
-            src={url}
-            controls
-            className="w-full rounded-md my-4"
-          />
+          <video src={url} controls className="w-full rounded-md my-4" />
         );
       }
 
       if (contentType.startsWith("audio")) {
         return (
-          <audio
-            src={url}
-            controls
-            className="w-full my-4"
-          />
+          <audio src={url} controls className="w-full my-4" />
         );
       }
 
@@ -183,6 +182,8 @@ export default function NewsArticle() {
   } = article.fields;
 
   const coverUrl = coverImage?.fields?.file?.url;
+  const coverTitle = coverImage?.fields?.title;
+  const coverDescription = coverImage?.fields?.description;
   const fullUrl = `https://adinkramedia.com/news/${article.sys.id}`;
 
   return (
@@ -190,11 +191,18 @@ export default function NewsArticle() {
       <Header />
       <section className="max-w-4xl mx-auto px-6 py-20">
         {coverUrl && (
-          <img
-            src={`https:${coverUrl}`}
-            alt={newsArticle}
-            className="w-full rounded-lg mb-6"
-          />
+          <figure className="mb-6">
+            <img
+              src={`https:${coverUrl}`}
+              alt={coverTitle || newsArticle}
+              className="w-full rounded-lg"
+            />
+            {coverDescription && (
+              <figcaption className="mt-2 text-sm text-gray-500 italic">
+                {coverDescription}
+              </figcaption>
+            )}
+          </figure>
         )}
 
         <h1 className="text-4xl font-bold mb-2">{newsArticle}</h1>
@@ -266,18 +274,24 @@ export default function NewsArticle() {
             </h3>
             <div className="grid gap-4 md:grid-cols-2">
               {mediaAssets.map((asset, i) => {
-                const file = asset.fields.file;
+                const { file, title, description } = asset.fields;
                 const url = `https:${file.url}`;
                 const contentType = file.contentType;
 
                 if (contentType.startsWith("image")) {
                   return (
-                    <img
-                      key={i}
-                      src={url}
-                      alt={asset.fields.title || "Media"}
-                      className="w-full rounded"
-                    />
+                    <figure key={i}>
+                      <img
+                        src={url}
+                        alt={title || "Media"}
+                        className="w-full rounded"
+                      />
+                      {description && (
+                        <figcaption className="mt-1 text-sm text-gray-500 italic">
+                          {description}
+                        </figcaption>
+                      )}
+                    </figure>
                   );
                 } else if (contentType.startsWith("video")) {
                   return <video key={i} src={url} controls className="w-full rounded" />;
@@ -308,7 +322,7 @@ export default function NewsArticle() {
           </h3>
           <p className="text-adinkra-gold/80 mb-6 max-w-2xl mx-auto">
             Fuel the Future of African Journalism.
-Support Adinkra Media — every tip helps us stay independent and amplify young African voices.
+            Support Adinkra Media — every tip helps us stay independent and amplify young African voices.
           </p>
           <a
             href="https://adinkraaudio.gumroad.com/coffee"
@@ -319,9 +333,8 @@ Support Adinkra Media — every tip helps us stay independent and amplify young 
             ☕ Tip Us on Gumroad
           </a>
         </div>
-
       </section>
-     
+      
     </div>
   );
 }
