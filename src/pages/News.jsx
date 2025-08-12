@@ -1,11 +1,10 @@
-// ...imports remain the same
 import { useEffect, useState } from "react";
 import { createClient } from "contentful";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthButton from "../components/AuthButton";
-import AdBanner from "../components/AdBanner"; // ✅ Import your AdBanner
+import AdBanner from "../components/AdBanner";
 
 const SPACE_ID = "8e41pkw4is56";
 const ACCESS_TOKEN = "qM0FzdQIPkX6VF4rt8wXzzLiPdgbjmmNGzHarCK0l8I";
@@ -116,8 +115,8 @@ export default function News() {
           ))}
         </div>
 
-        {/* ✅ Ad after category filter */}
-        <AdBanner slot="5581679872" style={{ width: "100%", height: "90px" }} />
+        {/* Ad after category filter - use slot 1 */}
+        <AdBanner slot="5581679872" style={{ width: "100%", height: "90px" }} keyProp="ad1" />
 
         {/* News Grid */}
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
@@ -152,8 +151,8 @@ export default function News() {
           })}
         </div>
 
-        {/* ✅ Ad after news grid */}
-        <AdBanner slot="5581679872" style={{ width: "100%", height: "90px" }} />
+        {/* Ad after news grid - use slot 2 */}
+        <AdBanner slot="5581679873" style={{ width: "100%", height: "90px" }} keyProp="ad2" />
 
         {/* Pagination */}
         {totalPages > 1 && (
@@ -212,10 +211,10 @@ export default function News() {
         </div>
       </section>
 
-      {/* ✅ Ad before footer */}
-      <AdBanner slot="5581679872" style={{ width: "100%", height: "90px" }} />
+      {/* Ad before footer - use slot 3 */}
+      <AdBanner slot="5581679874" style={{ width: "100%", height: "90px" }} keyProp="ad3" />
 
-      {/* ✅ RSS Feed Badge */}
+      {/* RSS Feed Badge */}
       <section className="text-center my-12">
         <a
           href="http://validator.w3.org/feed/check.cgi?url=https%3A//www.adinkramedia.com/rss.xml"
@@ -230,8 +229,6 @@ export default function News() {
           />
         </a>
       </section>
-
-     
     </div>
   );
 }
