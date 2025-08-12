@@ -212,20 +212,23 @@ export default function Audio() {
 
       {/* Filters */}
       <section className="max-w-6xl mx-auto px-6 pt-20 flex-grow">
-        <div className="flex flex-wrap justify-center gap-3 mb-10">
-          {allCategories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => handleCategoryChange(cat)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
-                selectedCategory === cat
-                  ? "bg-adinkra-highlight text-adinkra-bg"
-                  : "bg-adinkra-card border border-adinkra-gold/30 text-adinkra-gold hover:bg-adinkra-highlight/20"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+        {/* REPLACED: category buttons -> dropdown filter */}
+        <div className="max-w-xs mx-auto mb-10">
+          <label htmlFor="audio-category-select" className="block mb-2 font-semibold text-center text-adinkra-highlight">
+            Filter by Category
+          </label>
+          <select
+            id="audio-category-select"
+            value={selectedCategory}
+            onChange={(e) => handleCategoryChange(e.target.value)}
+            className="w-full bg-adinkra-card text-adinkra-gold rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-adinkra-highlight"
+          >
+            {allCategories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Track Grid */}
@@ -338,8 +341,6 @@ export default function Audio() {
       </section>
 
       <AccordionFaq title="Adinkra Audio Licensing FAQ" faqs={licensingFaqs} />
-
-    
     </div>
   );
 }

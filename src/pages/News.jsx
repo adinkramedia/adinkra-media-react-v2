@@ -4,6 +4,9 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthButton from "../components/AuthButton";
+import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
+
+import WaveformPlayer from "../components/WaveformPlayer";
 
 const SPACE_ID = "8e41pkw4is56";
 const ACCESS_TOKEN = "qM0FzdQIPkX6VF4rt8wXzzLiPdgbjmmNGzHarCK0l8I";
@@ -23,9 +26,61 @@ const categories = [
   "Health",
 ];
 
+const richTextOptions = {
+  renderNode: {
+    paragraph: (node, children) => <p className="mb-2">{children}</p>,
+  },
+};
+
+// New component: CollapsibleAudioBox
+function CollapsibleAudioBox({ clip }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { title, date, description, audioFile } = clip.fields;
+  const audioUrl = `https:${audioFile.fields.file.url}`;
+
+  return (
+    <div className="max-w-xl mx-auto">
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="w-full cursor-pointer rounded-lg bg-adinkra-highlight/20 border border-adinkra-highlight text-adinkra-highlight px-6 py-4 flex items-center justify-between hover:bg-adinkra-highlight/40 transition"
+          aria-label="Open audio player details"
+        >
+          <span className="font-semibold text-lg truncate">{title}</span>
+          <span className="text-2xl leading-none select-none">▶</span>
+        </button>
+      )}
+
+      {isOpen && (
+        <div className="bg-adinkra-card rounded-lg border border-adinkra-highlight p-6 shadow-md relative">
+          <button
+            onClick={() => setIsOpen(false)}
+            className="absolute top-3 right-3 text-adinkra-gold hover:text-yellow-500 font-bold text-xl"
+            aria-label="Close audio player details"
+          >
+            ✕
+          </button>
+          <h2 className="text-2xl font-bold text-adinkra-highlight mb-2">{title}</h2>
+          <p className="text-sm italic text-adinkra-gold/70 mb-3">
+            {new Date(date).toLocaleDateString()}
+          </p>
+          <WaveformPlayer audioUrl={audioUrl} />
+          {description && (
+            <div className="prose prose-invert prose-sm text-adinkra-gold max-w-none mt-4">
+              {documentToReactComponents(description, richTextOptions)}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function News() {
   const [articles, setArticles] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [africaInAMinuteClip, setAfricaInAMinuteClip] = useState(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -40,6 +95,17 @@ export default function News() {
     client
       .getEntries({ content_type: "africanTrendingNews", order: "-fields.date" })
       .then((res) => setArticles(res.items))
+      .catch(console.error);
+
+    client
+      .getEntries({
+        content_type: "africaInAMinuteClip",
+        order: "-fields.date",
+        limit: 1,
+      })
+      .then((res) => {
+        if (res.items.length > 0) setAfricaInAMinuteClip(res.items[0]);
+      })
       .catch(console.error);
   }, []);
 
@@ -64,7 +130,8 @@ export default function News() {
     navigate(`?page=${page}`);
   };
 
-  const handleCategoryChange = (cat) => {
+  const handleCategoryChange = (e) => {
+    const cat = e.target.value;
     setSelectedCategory(cat);
     setCurrentPage(1);
     navigate(`?page=1`);
@@ -96,22 +163,30 @@ export default function News() {
         </div>
       </section>
 
-      {/* Filter */}
-      <section className="max-w-6xl mx-auto px-6 py-10">
-        <div className="flex flex-wrap gap-3 justify-center mb-10">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => handleCategoryChange(cat)}
-              className={`px-4 py-2 text-sm rounded-full font-medium transition ${
-                selectedCategory === cat
-                  ? "bg-adinkra-highlight text-adinkra-bg"
-                  : "bg-adinkra-card text-adinkra-gold/70 hover:bg-adinkra-highlight/30"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+      <section className="max-w-6xl mx-auto px-6 py-10 space-y-8">
+        {/* Collapsible Africa In A Minute Audio Box */}
+        {africaInAMinuteClip && <CollapsibleAudioBox clip={africaInAMinuteClip} />}
+
+        {/* Category Dropdown */}
+        <div className="max-w-xs mx-auto">
+          <label
+            htmlFor="category-select"
+            className="block mb-2 font-semibold text-adinkra-highlight"
+          >
+            Filter by Category
+          </label>
+          <select
+            id="category-select"
+            value={selectedCategory}
+            onChange={handleCategoryChange}
+            className="w-full bg-adinkra-card text-adinkra-gold rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-adinkra-highlight"
+          >
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* News Grid */}
@@ -203,8 +278,6 @@ export default function News() {
           <AuthButton />
         </div>
       </section>
-
-      
     </div>
   );
 }
