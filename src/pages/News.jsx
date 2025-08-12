@@ -5,6 +5,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthButton from "../components/AuthButton";
+import AdBanner from "../components/AdBanner"; // ✅ Import your AdBanner
 
 const SPACE_ID = "8e41pkw4is56";
 const ACCESS_TOKEN = "qM0FzdQIPkX6VF4rt8wXzzLiPdgbjmmNGzHarCK0l8I";
@@ -115,6 +116,9 @@ export default function News() {
           ))}
         </div>
 
+        {/* ✅ Ad after category filter */}
+        <AdBanner slot="5581679872" style={{ width: "100%", height: "90px" }} />
+
         {/* News Grid */}
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
           {paginatedArticles.map((post) => {
@@ -147,6 +151,9 @@ export default function News() {
             );
           })}
         </div>
+
+        {/* ✅ Ad after news grid */}
+        <AdBanner slot="5581679872" style={{ width: "100%", height: "90px" }} />
 
         {/* Pagination */}
         {totalPages > 1 && (
@@ -204,6 +211,9 @@ export default function News() {
           <AuthButton />
         </div>
       </section>
+
+      {/* ✅ Ad before footer */}
+      <AdBanner slot="5581679872" style={{ width: "100%", height: "90px" }} />
 
       {/* ✅ RSS Feed Badge */}
       <section className="text-center my-12">

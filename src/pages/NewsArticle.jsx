@@ -1,3 +1,4 @@
+// src/pages/NewsArticle.jsx
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { createClient } from "contentful";
@@ -6,6 +7,7 @@ import { BLOCKS, MARKS } from "@contentful/rich-text-types";
 import { supabase } from "../lib/supabase";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import AdBanner from "../components/AdBanner"; // <- use the AdBanner you already have
 
 // Contentful Client
 const client = createClient({
@@ -46,15 +48,11 @@ const options = {
       }
 
       if (contentType.startsWith("video")) {
-        return (
-          <video src={url} controls className="w-full rounded-md my-4" />
-        );
+        return <video src={url} controls className="w-full rounded-md my-4" />;
       }
 
       if (contentType.startsWith("audio")) {
-        return (
-          <audio src={url} controls className="w-full my-4" />
-        );
+        return <audio src={url} controls className="w-full my-4" />;
       }
 
       return (
@@ -86,6 +84,7 @@ export default function NewsArticle() {
         updateMetaTags(entry);
       })
       .catch(console.error);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchLikes = async (slug) => {
@@ -179,12 +178,35 @@ export default function NewsArticle() {
     mediaAssets,
     date,
     affiliateLinks,
-  } = article.fields;
+  } = article.fields || {};
 
   const coverUrl = coverImage?.fields?.file?.url;
   const coverTitle = coverImage?.fields?.title;
   const coverDescription = coverImage?.fields?.description;
   const fullUrl = `https://adinkramedia.com/news/${article.sys.id}`;
+
+  // Split the rich text content roughly in half and insert a mid-article ad.
+  const renderBodyWithMidAd = () => {
+    if (!BodyContent || !Array.isArray(BodyContent.content) || BodyContent.content.length <= 3) {
+      return documentToReactComponents(BodyContent, options);
+    }
+    const nodes = BodyContent.content;
+    const splitIndex = Math.max(1, Math.ceil(nodes.length / 2));
+    const firstPart = { ...BodyContent, content: nodes.slice(0, splitIndex) };
+    const secondPart = { ...BodyContent, content: nodes.slice(splitIndex) };
+
+    return (
+      <>
+        {documentToReactComponents(firstPart, options)}
+
+        <div className="max-w-3xl mx-auto my-8 px-4">
+          <AdBanner slot="5581679872" style={{ width: "100%", height: 90 }} />
+        </div>
+
+        {documentToReactComponents(secondPart, options)}
+      </>
+    );
+  };
 
   return (
     <div className="bg-adinkra-bg text-adinkra-gold min-h-screen">
@@ -229,7 +251,9 @@ export default function NewsArticle() {
             Facebook
           </a>
           <a
-            href={`https://twitter.com/intent/tweet?url=${fullUrl}&text=${encodeURIComponent(newsArticle + " - " + summaryexcerpt)}`}
+            href={`https://twitter.com/intent/tweet?url=${fullUrl}&text=${encodeURIComponent(
+              newsArticle + " - " + (summaryexcerpt || "")
+            )}`}
             target="_blank"
             rel="noopener noreferrer"
             className="bg-adinkra-card px-4 py-2 rounded-full text-adinkra-highlight hover:underline"
@@ -237,7 +261,9 @@ export default function NewsArticle() {
             Twitter
           </a>
           <a
-            href={`https://wa.me/?text=${encodeURIComponent(newsArticle + " - " + summaryexcerpt + " " + fullUrl)}`}
+            href={`https://wa.me/?text=${encodeURIComponent(
+              newsArticle + " - " + (summaryexcerpt || "") + " " + fullUrl
+            )}`}
             target="_blank"
             rel="noopener noreferrer"
             className="bg-adinkra-card px-4 py-2 rounded-full text-adinkra-highlight hover:underline"
@@ -247,14 +273,19 @@ export default function NewsArticle() {
         </div>
 
         {summaryexcerpt && (
-          <p className="italic text-adinkra-gold/80 mb-8">{summaryexcerpt}</p>
+          <>
+            <p className="italic text-adinkra-gold/80 mb-8">{summaryexcerpt}</p>
+
+            <div className="max-w-3xl mx-auto my-8 px-4">
+              <AdBanner slot="5581679872" style={{ width: "100%", height: 90 }} />
+            </div>
+          </>
         )}
 
         <div className="prose prose-invert prose-lg text-adinkra-gold max-w-none mb-12">
-          {documentToReactComponents(BodyContent, options)}
+          {renderBodyWithMidAd()}
         </div>
 
-        {/* ✅ Affiliate Section */}
         {affiliateLinks && (
           <div className="mt-12 bg-adinkra-card p-6 rounded-lg border border-adinkra-highlight">
             <h3 className="text-xl font-semibold mb-4 text-adinkra-highlight">
@@ -266,7 +297,6 @@ export default function NewsArticle() {
           </div>
         )}
 
-        {/* 🎞️ Media Section */}
         {mediaAssets?.length > 0 && (
           <div className="mt-12">
             <h3 className="text-2xl font-semibold mb-4 text-adinkra-highlight">
@@ -281,11 +311,7 @@ export default function NewsArticle() {
                 if (contentType.startsWith("image")) {
                   return (
                     <figure key={i}>
-                      <img
-                        src={url}
-                        alt={title || "Media"}
-                        className="w-full rounded"
-                      />
+                      <img src={url} alt={title || "Media"} className="w-full rounded" />
                       {description && (
                         <figcaption className="mt-1 text-sm text-gray-500 italic">
                           {description}
@@ -294,7 +320,9 @@ export default function NewsArticle() {
                     </figure>
                   );
                 } else if (contentType.startsWith("video")) {
-                  return <video key={i} src={url} controls className="w-full rounded" />;
+                  return (
+                    <video key={i} src={url} controls className="w-full rounded" />
+                  );
                 } else if (contentType.startsWith("audio")) {
                   return <audio key={i} src={url} controls className="w-full" />;
                 } else {
@@ -315,14 +343,16 @@ export default function NewsArticle() {
           </div>
         )}
 
-        {/* 💰 Tip Jar Section */}
+        <div className="max-w-3xl mx-auto my-8 px-4">
+          <AdBanner slot="5581679872" style={{ width: "100%", height: 90 }} />
+        </div>
+
         <div className="mt-16 bg-adinkra-card p-8 rounded-lg text-center border border-adinkra-highlight shadow-lg">
           <h3 className="text-2xl font-bold text-adinkra-highlight mb-4">
             Support Our Journalism
           </h3>
           <p className="text-adinkra-gold/80 mb-6 max-w-2xl mx-auto">
-            Fuel the Future of African Journalism.
-            Support Adinkra Media — every tip helps us stay independent and amplify young African voices.
+            Fuel the Future of African Journalism. Support Adinkra Media — every tip helps us stay independent and amplify young African voices.
           </p>
           <a
             href="https://adinkraaudio.gumroad.com/coffee"
@@ -334,7 +364,8 @@ export default function NewsArticle() {
           </a>
         </div>
       </section>
-      
+
+     
     </div>
   );
 }
