@@ -7,7 +7,6 @@ import { BLOCKS, MARKS } from "@contentful/rich-text-types";
 import { supabase } from "../lib/supabase";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import AdBanner from "../components/AdBanner"; // <- your AdBanner component
 
 const client = createClient({
   space: "8e41pkw4is56",
@@ -183,35 +182,9 @@ export default function NewsArticle() {
   const coverDescription = coverImage?.fields?.description;
   const fullUrl = `https://adinkramedia.com/news/${article.sys.id}`;
 
-  const renderBodyWithMidAd = () => {
-    if (
-      !BodyContent ||
-      !Array.isArray(BodyContent.content) ||
-      BodyContent.content.length <= 3
-    ) {
-      return documentToReactComponents(BodyContent, options);
-    }
-    const nodes = BodyContent.content;
-    const splitIndex = Math.max(1, Math.ceil(nodes.length / 2));
-    const firstPart = { ...BodyContent, content: nodes.slice(0, splitIndex) };
-    const secondPart = { ...BodyContent, content: nodes.slice(splitIndex) };
-
-    return (
-      <>
-        {documentToReactComponents(firstPart, options)}
-
-        <div className="max-w-3xl mx-auto my-8 px-4">
-          {/* Mid-article ad, unique slot */}
-          <AdBanner
-            slot="5581679872"
-            style={{ width: "100%", height: 90 }}
-            keyProp="ad-mid"
-          />
-        </div>
-
-        {documentToReactComponents(secondPart, options)}
-      </>
-    );
+  const renderBody = () => {
+    if (!BodyContent) return null;
+    return documentToReactComponents(BodyContent, options);
   };
 
   return (
@@ -279,22 +252,11 @@ export default function NewsArticle() {
         </div>
 
         {summaryexcerpt && (
-          <>
-            <p className="italic text-adinkra-gold/80 mb-8">{summaryexcerpt}</p>
-
-            <div className="max-w-3xl mx-auto my-8 px-4">
-              {/* Summary excerpt ad - unique slot */}
-              <AdBanner
-                slot="5581679873"
-                style={{ width: "100%", height: 90 }}
-                keyProp="ad-summary"
-              />
-            </div>
-          </>
+          <p className="italic text-adinkra-gold/80 mb-8">{summaryexcerpt}</p>
         )}
 
         <div className="prose prose-invert prose-lg text-adinkra-gold max-w-none mb-12">
-          {renderBodyWithMidAd()}
+          {renderBody()}
         </div>
 
         {affiliateLinks && (
@@ -354,15 +316,6 @@ export default function NewsArticle() {
           </div>
         )}
 
-        {/* Footer ad - unique slot */}
-        <div className="max-w-3xl mx-auto my-8 px-4">
-          <AdBanner
-            slot="5581679874"
-            style={{ width: "100%", height: 90 }}
-            keyProp="ad-footer"
-          />
-        </div>
-
         <div className="mt-16 bg-adinkra-card p-8 rounded-lg text-center border border-adinkra-highlight shadow-lg">
           <h3 className="text-2xl font-bold text-adinkra-highlight mb-4">
             Support Our Journalism
@@ -380,7 +333,7 @@ export default function NewsArticle() {
           </a>
         </div>
       </section>
-      
+    
     </div>
   );
 }
