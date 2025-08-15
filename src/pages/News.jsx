@@ -5,12 +5,10 @@ import Footer from "../components/Footer";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthButton from "../components/AuthButton";
 import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
-
 import WaveformPlayer from "../components/WaveformPlayer";
 
 const SPACE_ID = "8e41pkw4is56";
 const ACCESS_TOKEN = "qM0FzdQIPkX6VF4rt8wXzzLiPdgbjmmNGzHarCK0l8I";
-
 const client = createClient({ space: SPACE_ID, accessToken: ACCESS_TOKEN });
 
 const categories = [
@@ -32,10 +30,8 @@ const richTextOptions = {
   },
 };
 
-// New component: CollapsibleAudioBox
 function CollapsibleAudioBox({ clip }) {
   const [isOpen, setIsOpen] = useState(false);
-
   const { title, date, description, audioFile } = clip.fields;
   const audioUrl = `https:${audioFile.fields.file.url}`;
 
@@ -45,10 +41,9 @@ function CollapsibleAudioBox({ clip }) {
         <button
           onClick={() => setIsOpen(true)}
           className="w-full cursor-pointer rounded-lg bg-adinkra-highlight/20 border border-adinkra-highlight text-adinkra-highlight px-6 py-4 flex items-center justify-between hover:bg-adinkra-highlight/40 transition"
-          aria-label="Open audio player details"
         >
           <span className="font-semibold text-lg truncate">{title}</span>
-          <span className="text-2xl leading-none select-none">▶</span>
+          <span className="text-2xl leading-none">▶</span>
         </button>
       )}
 
@@ -57,7 +52,6 @@ function CollapsibleAudioBox({ clip }) {
           <button
             onClick={() => setIsOpen(false)}
             className="absolute top-3 right-3 text-adinkra-gold hover:text-yellow-500 font-bold text-xl"
-            aria-label="Close audio player details"
           >
             ✕
           </button>
@@ -81,14 +75,11 @@ export default function News() {
   const [articles, setArticles] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [africaInAMinuteClip, setAfricaInAMinuteClip] = useState(null);
-
   const location = useLocation();
   const navigate = useNavigate();
-
   const query = new URLSearchParams(location.search);
   const initialPage = parseInt(query.get("page")) || 1;
   const [currentPage, setCurrentPage] = useState(initialPage);
-
   const itemsPerPage = 6;
 
   useEffect(() => {
@@ -119,7 +110,6 @@ export default function News() {
         );
 
   const totalPages = Math.ceil(filteredArticles.length / itemsPerPage);
-
   const paginatedArticles = filteredArticles.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -131,8 +121,7 @@ export default function News() {
   };
 
   const handleCategoryChange = (e) => {
-    const cat = e.target.value;
-    setSelectedCategory(cat);
+    setSelectedCategory(e.target.value);
     setCurrentPage(1);
     navigate(`?page=1`);
   };
@@ -164,7 +153,6 @@ export default function News() {
       </section>
 
       <section className="max-w-6xl mx-auto px-6 py-10 space-y-8">
-        {/* Collapsible Africa In A Minute Audio Box */}
         {africaInAMinuteClip && <CollapsibleAudioBox clip={africaInAMinuteClip} />}
 
         {/* Category Dropdown */}
@@ -179,7 +167,7 @@ export default function News() {
             id="category-select"
             value={selectedCategory}
             onChange={handleCategoryChange}
-            className="w-full bg-adinkra-card text-adinkra-gold rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-adinkra-highlight"
+            className="w-full bg-adinkra-card text-adinkra-gold rounded-md px-4 py-2"
           >
             {categories.map((cat) => (
               <option key={cat} value={cat}>
@@ -257,7 +245,7 @@ export default function News() {
       </section>
 
       {/* Contributor CTA */}
-      <section className="bg-adinkra-highlight/10 border border-adinkra-highlight rounded-lg max-w-5xl mx-auto my-16 px-6 py-10 text-center mx-4 md:mx-auto">
+      <section className="bg-adinkra-highlight/10 border border-adinkra-highlight rounded-lg max-w-5xl mx-auto my-16 px-6 py-10 text-center">
         <h2 className="text-2xl md:text-3xl font-bold text-adinkra-highlight mb-4">
           Want to Become a Contributor?
         </h2>
@@ -266,11 +254,10 @@ export default function News() {
         </p>
         <Link
           to="/apply"
-          className="inline-block bg-adinkra-highlight text-adinkra-bg px-6 py-3 rounded-full font-semibold hover:bg-adinkra-highlight/80 transition text-sm md:text-base"
+          className="inline-block bg-adinkra-highlight text-adinkra-bg px-6 py-3 rounded-full font-semibold hover:bg-adinkra-highlight/80 transition"
         >
           Apply to Contribute →
         </Link>
-
         <div className="mt-6">
           <p className="mb-2 text-adinkra-gold/80 font-semibold text-sm">
             Already a contributor? Log in to your dashboard:
@@ -278,6 +265,7 @@ export default function News() {
           <AuthButton />
         </div>
       </section>
+
     </div>
   );
 }
