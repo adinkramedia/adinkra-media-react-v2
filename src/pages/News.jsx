@@ -22,6 +22,8 @@ const categories = [
   "Science & Heritage",
   "Conflict & Humanitarian",
   "Health",
+  "Crime",
+  "Entertainment",
 ];
 
 const richTextOptions = {
