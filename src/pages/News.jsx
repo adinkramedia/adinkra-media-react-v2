@@ -11,6 +11,7 @@ const SPACE_ID = "8e41pkw4is56";
 const ACCESS_TOKEN = "qM0FzdQIPkX6VF4rt8wXzzLiPdgbjmmNGzHarCK0l8I";
 const client = createClient({ space: SPACE_ID, accessToken: ACCESS_TOKEN });
 
+// Topic categories
 const categories = [
   "All",
   "Politics",
@@ -25,6 +26,9 @@ const categories = [
   "Crime",
   "Entertainment",
 ];
+
+// Article types
+const articleTypes = ["All", "Breaking", "Analysis", "Feature", "Opinion"];
 
 const richTextOptions = {
   renderNode: {
@@ -76,6 +80,7 @@ function CollapsibleAudioBox({ clip }) {
 export default function News() {
   const [articles, setArticles] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedArticleType, setSelectedArticleType] = useState("All");
   const [africaInAMinuteClip, setAfricaInAMinuteClip] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -102,14 +107,19 @@ export default function News() {
       .catch(console.error);
   }, []);
 
-  const filteredArticles =
-    selectedCategory === "All"
-      ? articles
-      : articles.filter(
-          (post) =>
-            post.fields.category &&
-            post.fields.category.toLowerCase() === selectedCategory.toLowerCase()
-        );
+  const filteredArticles = articles.filter((post) => {
+    const categoryMatch =
+      selectedCategory === "All" ||
+      (post.fields.category &&
+        post.fields.category.toLowerCase() === selectedCategory.toLowerCase());
+
+    const articleTypeMatch =
+      selectedArticleType === "All" ||
+      (post.fields.articleType &&
+        post.fields.articleType.toLowerCase() === selectedArticleType.toLowerCase());
+
+    return categoryMatch && articleTypeMatch;
+  });
 
   const totalPages = Math.ceil(filteredArticles.length / itemsPerPage);
   const paginatedArticles = filteredArticles.slice(
@@ -124,6 +134,12 @@ export default function News() {
 
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
+    setCurrentPage(1);
+    navigate(`?page=1`);
+  };
+
+  const handleArticleTypeChange = (e) => {
+    setSelectedArticleType(e.target.value);
     setCurrentPage(1);
     navigate(`?page=1`);
   };
@@ -157,32 +173,58 @@ export default function News() {
       <section className="max-w-6xl mx-auto px-6 py-10 space-y-8">
         {africaInAMinuteClip && <CollapsibleAudioBox clip={africaInAMinuteClip} />}
 
-        {/* Category Dropdown */}
-        <div className="max-w-xs mx-auto">
-          <label
-            htmlFor="category-select"
-            className="block mb-2 font-semibold text-adinkra-highlight"
-          >
-            Filter by Category
-          </label>
-          <select
-            id="category-select"
-            value={selectedCategory}
-            onChange={handleCategoryChange}
-            className="w-full bg-adinkra-card text-adinkra-gold rounded-md px-4 py-2"
-          >
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
+        {/* Filters */}
+        <div className="flex flex-col md:flex-row gap-6 justify-center">
+          {/* Category Dropdown */}
+          <div className="max-w-xs w-full">
+            <label
+              htmlFor="category-select"
+              className="block mb-2 font-semibold text-adinkra-highlight"
+            >
+              Filter by Category
+            </label>
+            <select
+              id="category-select"
+              value={selectedCategory}
+              onChange={handleCategoryChange}
+              className="w-full bg-adinkra-card text-adinkra-gold rounded-md px-4 py-2"
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Article Type Dropdown */}
+          <div className="max-w-xs w-full">
+            <label
+              htmlFor="articleType-select"
+              className="block mb-2 font-semibold text-adinkra-highlight"
+            >
+              Filter by Article Type
+            </label>
+            <select
+              id="articleType-select"
+              value={selectedArticleType}
+              onChange={handleArticleTypeChange}
+              className="w-full bg-adinkra-card text-adinkra-gold rounded-md px-4 py-2"
+            >
+              {articleTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* News Grid */}
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
           {paginatedArticles.map((post) => {
-            const { coverImage, summaryExcerpt, newsArticle, date, category } = post.fields;
+            const { coverImage, summaryExcerpt, newsArticle, date, category, articleType } =
+              post.fields;
             const cover = coverImage?.fields?.file?.url;
             const postDate = new Date(date).toLocaleDateString();
 
@@ -198,7 +240,14 @@ export default function News() {
                   />
                 )}
                 <h3 className="text-xl font-semibold mb-1">{newsArticle}</h3>
-                <p className="text-sm italic text-adinkra-gold/60 mb-1">{category}</p>
+                <div className="flex items-center justify-between text-sm mb-2">
+                  <span className="italic text-adinkra-gold/60">{category}</span>
+                  {articleType && (
+                    <span className="px-2 py-0.5 bg-adinkra-highlight/30 text-adinkra-highlight text-xs rounded">
+                      {articleType}
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-adinkra-gold/70 mb-2">{postDate}</p>
                 <p className="text-sm text-adinkra-gold/90 mb-4">{summaryExcerpt}</p>
                 <Link
@@ -252,7 +301,9 @@ export default function News() {
           Want to Become a Contributor?
         </h2>
         <p className="text-adinkra-gold/90 mb-6 text-sm md:text-base max-w-3xl mx-auto">
-          Are you a student journalist, writer, or researcher? Apply now to gain hands-on publishing experience, build your portfolio, and contribute to African media with purpose and pride.
+          Are you a student journalist, writer, or researcher? Apply now to gain hands-on
+          publishing experience, build your portfolio, and contribute to African media with
+          purpose and pride.
         </p>
         <Link
           to="/apply"
