@@ -1,11 +1,10 @@
 import { useEffect } from "react";
 
-// Keep track of loaded scripts globally
 const loadedScripts = {};
 
 const AdsterraNative = ({ containerId, scriptSrc }) => {
   useEffect(() => {
-    // Ensure container exists in the DOM
+    // Ensure container exists
     let container = document.getElementById(containerId);
     if (!container) {
       container = document.createElement("div");
@@ -14,15 +13,20 @@ const AdsterraNative = ({ containerId, scriptSrc }) => {
       document.body.appendChild(container);
     }
 
-    // Only load the script if not loaded before
+    // Append script if not loaded
     if (!loadedScripts[scriptSrc]) {
       const script = document.createElement("script");
       script.src = scriptSrc;
       script.async = true;
       script.setAttribute("data-cfasync", "false");
+      script.onload = () => {
+        // Re-invoke Adsterra if available
+        if (window.AdsterraNativeInvoke) window.AdsterraNativeInvoke();
+      };
       document.body.appendChild(script);
-
       loadedScripts[scriptSrc] = true;
+    } else {
+      if (window.AdsterraNativeInvoke) window.AdsterraNativeInvoke();
     }
   }, [containerId, scriptSrc]);
 

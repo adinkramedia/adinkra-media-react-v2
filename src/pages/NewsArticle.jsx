@@ -177,8 +177,11 @@ export default function NewsArticle() {
         </div>
       )}
 
-      {/* Adsterra Tip Jar Ad */}
-      <AdsterraNative containerId="adsterra-tipjar" scriptSrc="//contendnoticefaculty.com/0ee13306bb53827f2b0fac87966aaac0/invoke.js" />
+     {/* Hero Ad */}
+     <AdsterraNative
+       containerId="container-0ee13306bb53827f2b0fac87966aaac0"
+       scriptSrc="//nastylayer.com/0ee13306bb53827f2b0fac87966aaac0/invoke.js"
+       />
 
       {/* Tip Jar */}
       <div className="mt-16 bg-adinkra-card p-8 rounded-lg text-center border border-adinkra-highlight shadow-lg">
