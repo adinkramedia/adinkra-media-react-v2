@@ -8,6 +8,7 @@ import Footer from "../components/Footer";
 import AccordionFaq from "../components/AccordionFaq";
 import WaveformPlayer from "../components/WaveformPlayer";
 import { useLocation, useNavigate } from "react-router-dom";
+import SponsorAds from "../components/SponsorAds"; // ✅ NEW
 
 const SPACE_ID = "8e41pkw4is56";
 const ACCESS_TOKEN = "qM0FzdQIPkX6VF4rt8wXzzLiPdgbjmmNGzHarCK0l8I";
@@ -209,6 +210,11 @@ export default function Audio() {
           </div>
         </div>
       </section>
+
+      {/* Billboard Sponsor Ad */}
+      <div className="my-10 px-6 max-w-6xl mx-auto">
+        <SponsorAds />
+      </div>
 
       {/* Filters */}
       <section className="max-w-6xl mx-auto px-6 pt-20 flex-grow">

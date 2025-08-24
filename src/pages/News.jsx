@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "contentful";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import SponsorCard from "../components/SponsorAds"; // ✅ import ad slot
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthButton from "../components/AuthButton";
 import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
@@ -220,6 +221,9 @@ export default function News() {
           </div>
         </div>
 
+        {/* ✅ AD SLOT (hardcoded) */}
+        <SponsorCard />
+
         {/* News Grid */}
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
           {paginatedArticles.map((post) => {
@@ -319,6 +323,7 @@ export default function News() {
         </div>
       </section>
 
+      
     </div>
   );
 }

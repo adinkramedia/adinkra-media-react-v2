@@ -1,7 +1,9 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import AnalyticsTracker from "./components/AnalyticsTracker";
+
+// Global Components
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import AnalyticsTracker from "./components/AnalyticsTracker";
 
 // Pages
 import Home from "./pages/Home";
@@ -25,8 +27,12 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-adinkra-bg text-adinkra-gold">
       <AnalyticsTracker />
+
+      {/* Global Navbar */}
       <Header />
-      <main className="flex-grow pt-20">
+
+      {/* Page Content */}
+      <div className="flex-1">
         <Routes>
           {/* Core Pages */}
           <Route path="/" element={<Home />} />
@@ -42,10 +48,9 @@ export default function App() {
           {/* Public Contributor Profile */}
           <Route path="/contributor/:id" element={<ShareDashboard />} />
 
-          {/* Article Pages (standard + clean share URLs) */}
+          {/* Article Pages */}
           <Route path="/house-article/:id" element={<HouseArticle />} />
           <Route path="/house/:id" element={<HouseArticle />} />
-
           <Route path="/news-article/:id" element={<NewsArticle />} />
           <Route path="/news/:id" element={<NewsArticle />} />
 
@@ -68,7 +73,9 @@ export default function App() {
             }
           />
         </Routes>
-      </main>
+      </div>
+
+      {/* Global Footer */}
       <Footer />
     </div>
   );
