@@ -27,6 +27,30 @@ const adsByDevice = {
                <img src="https://www.tqlkg.com/image-101502333-15398505" width="120" height="60" alt="EaseUS Mobile" border="0"/>
              </a>`,
     },
+    // Proton VPN (text ad for mobile)
+    {
+      html: `
+        <div class="p-4 bg-adinkra-highlight/20 rounded-lg text-center">
+          <p class="text-sm font-semibold mb-2">Proton Partners Program:</p>
+          <p class="text-xs mb-3">High-speed Swiss VPN that safeguards your privacy.</p>
+          <a href="https://www.jdoqocy.com/click-101502333-15834536" target="_blank" class="inline-block bg-adinkra-highlight text-black px-4 py-2 rounded-full font-bold hover:bg-yellow-400 transition">
+            Respect your Privacy. Get Proton VPN now
+          </a>
+        </div>
+      `,
+    },
+    // Safeshell VPN (text ad for mobile)
+    {
+      html: `
+        <div class="p-4 bg-adinkra-highlight/20 rounded-lg text-center">
+          <p class="text-sm font-semibold mb-2">Safeshell VPN:</p>
+          <p class="text-xs mb-3">Watch Netflix without limits — fast, secure and stable VPN!</p>
+          <a href="https://www.kqzyfj.com/click-101502333-17077457" target="_blank" class="inline-block bg-adinkra-highlight text-black px-4 py-2 rounded-full font-bold hover:bg-yellow-400 transition">
+            Get the Best VPN of 2025
+          </a>
+        </div>
+      `,
+    },
   ],
   desktop: [
     // EconomyBookings (desktop big)
@@ -46,6 +70,30 @@ const adsByDevice = {
       html: `<a href="https://www.kqzyfj.com/click-101502333-15398505" target="_top">
                <img src="https://www.tqlkg.com/image-101502333-15398505" width="120" height="60" alt="EaseUS Desktop" border="0"/>
              </a>`,
+    },
+    // Proton VPN (text ad for desktop)
+    {
+      html: `
+        <div class="p-6 bg-adinkra-highlight/20 rounded-lg text-center">
+          <p class="text-base font-semibold mb-2">Proton Partners Program:</p>
+          <p class="text-sm mb-3">High-speed Swiss VPN that safeguards your privacy.</p>
+          <a href="https://www.jdoqocy.com/click-101502333-15834536" target="_blank" class="inline-block bg-adinkra-highlight text-black px-6 py-3 rounded-full font-bold hover:bg-yellow-400 transition">
+            Respect your Privacy. Get Proton VPN now
+          </a>
+        </div>
+      `,
+    },
+    // Safeshell VPN (text ad for desktop)
+    {
+      html: `
+        <div class="p-6 bg-adinkra-highlight/20 rounded-lg text-center">
+          <p class="text-base font-semibold mb-2">Safeshell VPN:</p>
+          <p class="text-sm mb-3">Watch Netflix without limits — fast, secure and stable VPN!</p>
+          <a href="https://www.kqzyfj.com/click-101502333-17077457" target="_blank" class="inline-block bg-adinkra-highlight text-black px-6 py-3 rounded-full font-bold hover:bg-yellow-400 transition">
+            Get the Best VPN of 2025
+          </a>
+        </div>
+      `,
     },
   ],
 };
