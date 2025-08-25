@@ -5,7 +5,6 @@ import { createClient } from "contentful";
 import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
 import { BLOCKS, MARKS } from "@contentful/rich-text-types";
 import { supabase } from "../lib/supabase";
-import AdsterraNative from "../components/AdsterraNative"; // existing
 import SponsorCard from "../components/SponsorAds"; // ✅ NEW import
 
 const client = createClient({
@@ -189,11 +188,6 @@ export default function NewsArticle() {
         | {date ? new Date(date).toLocaleDateString() : ""} • {category}
       </p>
 
-      {/* Adsterra Hero Ad */}
-      <AdsterraNative
-        containerId="adsterra-hero"
-        scriptSrc="//contendnoticefaculty.com/0ee13306bb53827f2b0fac87966aaac0/invoke.js"
-      />
 
       {/* Billboard Sponsor Ad */}
       <div className="my-10">
@@ -304,11 +298,6 @@ export default function NewsArticle() {
         </div>
       )}
 
-      {/* Hero Ad */}
-      <AdsterraNative
-        containerId="container-0ee13306bb53827f2b0fac87966aaac0"
-        scriptSrc="//nastylayer.com/0ee13306bb53827f2b0fac87966aaac0/invoke.js"
-      />
 
       {/* Tip Jar */}
       <div className="mt-16 bg-adinkra-card p-8 rounded-lg text-center border border-adinkra-highlight shadow-lg">
